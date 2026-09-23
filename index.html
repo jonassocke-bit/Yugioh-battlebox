@@ -14,7 +14,7 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 .box{background:var(--panel);border:1px solid var(--line);border-radius:17px;margin:13px 0;overflow:hidden}.pad{padding:14px}
 .picker{width:100%;text-align:left;border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:#fff;padding:12px 42px 12px 13px;position:relative}
 .picker:after{content:"⌄";position:absolute;right:15px;top:17px;color:var(--muted)}.pickerName{font-weight:760;font-size:16px}.pickerMeta{font-size:11px;color:var(--muted);margin-top:3px}
-.stats{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.pill{font-size:11px;border:1px solid var(--line);background:#11161d;border-radius:999px;padding:7px 10px;color:var(--muted)}.pill b{color:#fff}
+.stats{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.pill{font-size:11px;border:1px solid var(--line);background:#11161d;border-radius:999px;padding:7px 10px;color:var(--muted)}.pill b{color:#fff}.pill.ok b{color:var(--green)}.pill.warn b{color:var(--yellow)}.pill.bad b{color:var(--red)}
 .controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}label{font-size:10px;color:var(--muted);display:block;margin:0 0 5px 2px}select,input{width:100%;background:var(--panel2);border:1px solid var(--line);color:#fff;border-radius:11px;padding:10px;font:inherit}
 .statusbar{margin-top:12px}.track{height:7px;background:#292f39;border-radius:999px;overflow:hidden}.track i{display:block;width:0;height:100%;background:var(--gold);transition:width .25s}.statusText{font-size:11px;color:var(--muted);margin-top:7px;display:flex;justify-content:space-between;gap:12px}
 #search{margin:2px 0 12px}.group{background:var(--panel);border:1px solid var(--line);border-radius:16px;margin:11px 0;overflow:hidden}.groupHead{padding:10px 12px;font-size:13px;font-weight:750;background:rgba(255,255,255,.025)}
@@ -32,7 +32,7 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 </head>
 <body>
 <div class="app">
-  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.7</div>
+  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.9</div>
   <h1 id="deckTitle" class="title">Deck laden …</h1>
   <div id="deckSource" class="source"></div>
 
@@ -43,10 +43,13 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
     </button>
 
     <div class="stats">
-      <span class="pill">Deck <b id="totalCount">–</b></span>
+      <span class="pill">Main <b id="mainCount">–</b></span>
+      <span class="pill">Extra <b id="extraCount">–</b></span>
       <span class="pill">Unterschiedlich <b id="uniqueCount">–</b></span>
       <span class="pill">Verfügbar <b id="availableCount">–</b></span><span class="pill">GitHub <b id="archiveCount">–</b></span>
       <span class="pill">Render <b>450 dpi</b></span>
+      <span class="pill" id="serverPill">Server <b id="serverState">prüfen …</b></span>
+      <span class="pill" id="tokenPill">GitHub-Token <b id="tokenState">prüfen …</b></span>
     </div>
 
     <div class="controls">
@@ -100,10 +103,10 @@ const $=id=>document.getElementById(id);
 function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
 function keyOf(c){return String(c.key||c.set||c.en).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase()}
 function localUrl(c,bust=false){return `cards/${encodeURIComponent(keyOf(c))}.png${bust?'?v='+Date.now():''}`}
-function sourceText(d){const s=d.source||{};return [s.label||d.category,s.year||d.year].filter(Boolean).join(' · ')}
+function sourceText(d){const s=d.source||{};return [s.label||d.category,s.recipe?`„${s.recipe}“`:null,s.year||d.year].filter(Boolean).join(' · ')}
 function qty(c){return quantities[c.set||keyOf(c)] ?? Number(c.qty||0)}
-function currentCards(){return currentDeck.cards.filter(c=>qty(c)>0)}
-function copies(){const out=[];for(const c of currentCards())for(let i=0;i<qty(c);i++)out.push(c);return out}
+function currentCards(){return (currentDeck?.cards||[]).filter(c=>qty(c)>0)}
+function copies(){const out=[];const ordered=[...currentCards()].sort((a,b)=>(a.zone==='extra')-(b.zone==='extra'));for(const c of ordered)for(let i=0;i<qty(c);i++)out.push(c);return out}
 function toast(t,ms=4200){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),ms)}
 function setProgress(p,label){p=Math.max(0,Math.min(1,Number(p)||0));$('progressFill').style.width=(p*100)+'%';$('progressPct').textContent=p?Math.round(p*100)+' %':'';$('progressLabel').textContent=label||''}
 function savePrefs(){
@@ -116,17 +119,20 @@ function loadQty(deck){
   try{quantities=JSON.parse(localStorage.getItem('ygo_qty_'+deck.id)||'{}')}catch{quantities={}}
 }
 function updateStats(){
-  const cards=currentCards(),total=copies().length;
+  const cards=currentCards();
+  const main=cards.filter(c=>c.zone!=='extra').reduce((a,c)=>a+qty(c),0);
+  const extra=cards.filter(c=>c.zone==='extra').reduce((a,c)=>a+qty(c),0);
   const available=cards.filter(c=>['ok','temp'].includes(assetState.get(keyOf(c))?.state)).length;
   const github=cards.filter(c=>assetState.get(keyOf(c))?.state==='ok').length;
-  $('totalCount').textContent=total;
+  $('mainCount').textContent=main;
+  $('extraCount').textContent=extra;
   $('uniqueCount').textContent=cards.length;
   $('availableCount').textContent=`${available}/${cards.length}`;
   $('archiveCount').textContent=`${github}/${cards.length}`;
-  $('makePdf').disabled=cards.some(c=>!['ok','temp'].includes(assetState.get(keyOf(c))?.state));
+  $('makePdf').disabled=!cards.length || cards.some(c=>!['ok','temp'].includes(assetState.get(keyOf(c))?.state));
   const missing=cards.filter(c=>!['ok','temp'].includes(assetState.get(keyOf(c))?.state)).length;
-  $('renderMissing').disabled=!missing || Boolean(activeJob);
-  $('renderMissing').textContent=missing?`${missing} fehlende rendern`:'Alles vorhanden';
+  $('renderMissing').disabled=!missing || Boolean(activeJob) || !cards.length;
+  $('renderMissing').textContent=missing?`${missing} fehlende rendern`:(cards.length?'Alles vorhanden':'Deckliste laden …');
 }
 
 async function existsLocal(card,bust=false){
@@ -137,6 +143,7 @@ async function existsLocal(card,bust=false){
 }
 async function checkAssets(){
   const cards=currentCards();
+  if(!cards.length){setProgress(0,'Keine Karten geladen');updateStats();return;}
   let done=0,ok=0;
   setProgress(0,'Archiv wird geprüft …');
   const workers=Array.from({length:Math.min(6,cards.length)},async(_,wi)=>{
@@ -192,19 +199,27 @@ function renderCardList(){
   if(!currentDeck)return;
   const q=norm($('search').value),host=$('cardList');
   host.innerHTML='';
-  for(const type of ['Monster','Zauber','Falle']){
-    const arr=currentDeck.cards.filter(c=>(c.type||'Monster')===type && (!q||norm(c.de+' '+c.en+' '+c.set).includes(q)));
+
+  const sections=[
+    {label:'Monster',filter:c=>c.zone!=='extra'&&(c.type||'Monster')==='Monster'},
+    {label:'Zauber',filter:c=>c.zone!=='extra'&&c.type==='Zauber'},
+    {label:'Fallen',filter:c=>c.zone!=='extra'&&c.type==='Falle'},
+    {label:'Extra Deck',filter:c=>c.zone==='extra'}
+  ];
+
+  for(const sec of sections){
+    const arr=(currentDeck.cards||[]).filter(c=>sec.filter(c)&&(!q||norm((c.de||'')+' '+c.en+' '+(c.set||'')).includes(q)));
     if(!arr.length)continue;
     const group=document.createElement('div');group.className='group';
-    group.innerHTML=`<div class="groupHead">${type==='Falle'?'Fallen':type}</div>`;
+    group.innerHTML=`<div class="groupHead">${sec.label}</div>`;
     for(const c of arr){
       const url=imageUrl(c);
       const row=document.createElement('div');row.className='cardRow';
       row.innerHTML=`
         <div class="thumb ${url?'hasImage':'missing'}" ${url?`style="background-image:url('${url.replace(/'/g,'%27')}')"`:''}></div>
         <div>
-          <div class="cardName">${esc(c.de)}</div>
-          <div class="cardMeta">${esc(c.set||'ohne Setcode')} · ${esc(c.en)}</div>
+          <div class="cardName">${esc(c.de||c.en)}</div>
+          <div class="cardMeta">${esc(c.set||'Bibliothekskarte')} · ${esc(c.en)}</div>
           ${statusHtml(c)}
         </div>
         <div class="qty"><button data-d="-1">−</button><span>${qty(c)}</span><button data-d="1">+</button></div>`;
@@ -219,9 +234,58 @@ function renderCardList(){
     }
     host.appendChild(group);
   }
+
+  if(!(currentDeck.cards||[]).length){
+    const empty=document.createElement('div');empty.className='box';
+    empty.innerHTML='<div class="pad source">Diese offizielle Deckliste wird beim ersten Öffnen einmalig aus der hinterlegten Quelle geladen.</div>';
+    host.appendChild(empty);
+  }
   updateStats();
 }
-function showDeck(deck){
+async function enrichDeckMetadata(deck){
+  const todo=(deck.cards||[]).filter(c=>!c.de);
+  if(!todo.length)return;
+  try{
+    const r=await fetch(RENDER_SERVER+'/api/metadata',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({cards:todo.map(c=>({key:keyOf(c),set:c.set||'',en:c.en,de:c.de||'',type:c.type||''}))})
+    });
+    const j=await r.json();
+    if(!r.ok)throw Error(j.error||'Metadaten konnten nicht geladen werden.');
+    const byKey=new Map((j.cards||[]).map(x=>[x.key,x]));
+    for(const c of deck.cards||[]){
+      const m=byKey.get(keyOf(c));
+      if(m){c.de=m.de||c.de||c.en;c.type=m.type||c.type}
+    }
+    renderCardList();
+  }catch(e){
+    console.warn(e);
+  }
+}
+
+async function resolveDeckIfNeeded(deck){
+  if((deck.cards||[]).length || !deck.import)return deck;
+  setProgress(.03,'Deckliste wird einmalig geladen …');
+  $('renderMissing').disabled=true;$('makePdf').disabled=true;
+  try{
+    const r=await fetch(RENDER_SERVER+'/api/import-deck',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:deck.id})
+    });
+    const j=await r.json();
+    if(!r.ok)throw Error(j.error||'Deckliste konnte nicht importiert werden.');
+    const idx=library.decks.findIndex(d=>d.id===deck.id);
+    if(idx>=0)library.decks[idx]=j.deck;
+    if(j.persisted)toast('Deckliste wurde einmalig geladen und dauerhaft in decks.json gespeichert.',5200);
+    else toast('Deckliste geladen, aber noch nicht dauerhaft gespeichert.',6500);
+    return j.deck;
+  }catch(e){
+    toast(String(e.message||e),8000);
+    setProgress(0,'Decklisten-Import fehlgeschlagen');
+    return deck;
+  }
+}
+
+async function showDeck(deck){
   currentDeck=deck;loadQty(deck);
   assetState=new Map();tempSources=new Map();
   $('deckTitle').textContent=deck.name;
@@ -232,7 +296,18 @@ function showDeck(deck){
   savePrefs();
   $('pdfDownload').classList.remove('show');
   renderCardList();
-  checkAssets();
+
+  const resolved=await resolveDeckIfNeeded(deck);
+  if(resolved!==deck){
+    currentDeck=resolved;loadQty(resolved);
+    $('deckSource').textContent=sourceText(resolved);
+    $('pickerMeta').textContent=sourceText(resolved);
+    renderCardList();
+  }
+  if(!(currentDeck.cards||[]).length){updateStats();return}
+
+  enrichDeckMetadata(currentDeck);
+  await checkAssets();
 }
 function openPicker(){
   $('sheetBg').classList.add('open');$('deckSearch').value='';renderDeckItems();
@@ -246,7 +321,7 @@ function renderDeckItems(){
     const h=document.createElement('div');h.className='deckGroupTitle';h.textContent=g;host.appendChild(h);
     for(const d of filtered.filter(x=>(x.category||'Decks')===g)){
       const b=document.createElement('button');b.className='deckItem';
-      b.innerHTML=`<b>${esc(d.name)}</b><small>${esc(sourceText(d))} · ${d.cards.reduce((a,c)=>a+Number(c.qty||0),0)} Karten</small>`;
+      const count=(d.cards||[]).reduce((a,c)=>a+Number(c.qty||0),0);b.innerHTML=`<b>${esc(d.name)}</b><small>${esc(sourceText(d))}${count?` · ${count} Karten`:' · Deckliste beim ersten Öffnen laden'}</small>`;
       b.onclick=()=>{closePicker();showDeck(d)};
       host.appendChild(b);
     }
@@ -313,8 +388,8 @@ async function pollJob(id){
     if(j.persisted){
       setProgress(1,'Gerendert · GitHub Pages wird aktualisiert …');
       toast('Karten wurden in GitHub gespeichert. Ich prüfe kurz, wann Pages sie ausliefert.');
-      for(let n=0;n<12;n++){
-        await new Promise(r=>setTimeout(r,2500));
+      for(let n=0;n<30;n++){
+        await new Promise(r=>setTimeout(r,2000));
         let remaining=0;
         for(const c of currentCards()){
           const k=keyOf(c);
@@ -343,7 +418,7 @@ async function cardData(c){
   const k=keyOf(c);
   const url=assetState.get(k)?.state==='temp'?tempSources.get(k):localUrl(c);
   const r=await fetch(url,{cache:'force-cache'});
-  if(!r.ok)throw Error(`${c.de}: Bild konnte nicht geladen werden.`);
+  if(!r.ok)throw Error(`${c.de||c.en}: Bild konnte nicht geladen werden.`);
   return await blobToDataURL(await r.blob());
 }
 function drawMarks(doc,cfg,sx,sy,cw,ch){
@@ -376,7 +451,7 @@ async function makePdf(){
     const chunk=all.slice(p*cap,(p+1)*cap);
     for(let i=0;i<chunk.length;i++){
       const c=chunk[i],k=keyOf(c);
-      setProgress((p*cap+i)/all.length,`PDF · Karte ${p*cap+i+1}/${all.length}: ${c.de}`);
+      setProgress((p*cap+i)/all.length,`PDF · Karte ${p*cap+i+1}/${all.length}: ${c.de||c.en}`);
       if(!cache.has(k))cache.set(k,await cardData(c));
       const row=Math.floor(i/cfg.cols),col=i%cfg.cols;
       doc.addImage(cache.get(k),'PNG',sx+col*cw,sy+row*ch,cw,ch,k,'FAST');
@@ -396,7 +471,42 @@ async function makePdf(){
   setProgress(1,'PDF fertig · unten auf „PDF öffnen / herunterladen“ tippen');
   toast('PDF ist fertig. Über den neuen Button kannst du sie öffnen bzw. auf dem iPhone speichern.',6500);
 }
+
+async function checkServerHealth(){
+  const serverPill=$('serverPill'),tokenPill=$('tokenPill');
+  const serverState=$('serverState'),tokenState=$('tokenState');
+  serverPill.classList.remove('ok','warn','bad');
+  tokenPill.classList.remove('ok','warn','bad');
+  serverState.textContent='prüfen …';
+  tokenState.textContent='prüfen …';
+
+  try{
+    const r=await fetch(RENDER_SERVER+'/health',{cache:'no-store',signal:AbortSignal.timeout(12000)});
+    const j=await r.json();
+    if(!r.ok || !j.ok)throw Error('Server meldet Fehler');
+
+    serverState.textContent='läuft';
+    serverPill.classList.add('ok');
+
+    if(j.githubPersistence){
+      tokenState.textContent='aktiv';
+      tokenPill.classList.add('ok');
+    }else{
+      tokenState.textContent='fehlt';
+      tokenPill.classList.add('warn');
+    }
+  }catch(e){
+    serverState.textContent='nicht erreichbar';
+    serverPill.classList.add('bad');
+    tokenState.textContent='unbekannt';
+    tokenPill.classList.add('warn');
+  }
+}
+
 async function init(){
+  checkServerHealth();
+  setInterval(checkServerHealth,60000);
+
   $('layout').value=localStorage.getItem('ygo_layout')||'a3safe';
   $('marks').value=localStorage.getItem('ygo_marks')||'1';
   $('layout').onchange=()=>{savePrefs();$('pdfDownload').classList.remove('show')};$('marks').onchange=()=>{savePrefs();$('pdfDownload').classList.remove('show')};
@@ -408,7 +518,7 @@ async function init(){
     const r=await fetch('decks.json',{cache:'no-store'});
     library=await r.json();
     const wanted=localStorage.getItem('ygo_deck');
-    showDeck(library.decks.find(d=>d.id===wanted)||library.decks[0]);
+    await showDeck(library.decks.find(d=>d.id===wanted)||library.decks[0]);
   }catch(e){
     setProgress(0,'decks.json konnte nicht geladen werden');
     toast(String(e.message||e),8000);

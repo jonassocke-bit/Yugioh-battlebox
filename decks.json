@@ -1,19 +1,18 @@
 {
-  "schemaVersion": 1,
-  "assetConvention": "cards/<card.key-or-set>.png",
+  "schemaVersion": 2,
+  "title": "Yu-Gi-Oh! Classic Battle Box",
+  "renderDpi": 450,
   "decks": [
     {
       "id": "dragons-roar",
       "name": "Dragon's Roar",
-      "category": "Structure Deck",
-      "era": "DM/GX",
+      "category": "Structure Decks",
       "year": 2005,
       "source": {
-        "label": "Structure Deck: Dragon's Roar",
-        "kind": "Offizielles TCG Structure Deck",
-        "year": 2005
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2005,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Dragon%27s_Roar_%28TCG-DE%29"
       },
-      "notes": "Deutsche SD1-Fassung. Mengen entsprechen dem Deckinhalt.",
       "cards": [
         {
           "set": "SD1-DE001",
@@ -210,6 +209,2290 @@
           "de": "Fluch des Anubis",
           "type": "Falle",
           "qty": 1
+        }
+      ]
+    },
+    {
+      "id": "zombie-madness",
+      "name": "Zombie Madness",
+      "category": "Structure Decks",
+      "year": 2005,
+      "source": {
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2005,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Zombie_Madness_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Zombie_Madness_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "blaze-of-destruction",
+      "name": "Blaze of Destruction",
+      "category": "Structure Decks",
+      "year": 2005,
+      "source": {
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2005,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Blaze_of_Destruction_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Blaze_of_Destruction_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "fury-from-the-deep",
+      "name": "Fury from the Deep",
+      "category": "Structure Decks",
+      "year": 2005,
+      "source": {
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2005,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Fury_from_the_Deep_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Fury_from_the_Deep_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "warriors-triumph",
+      "name": "Warrior's Triumph",
+      "category": "Structure Decks",
+      "year": 2005,
+      "source": {
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2005,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Warrior%27s_Triumph_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Warrior%27s_Triumph_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "spellcasters-judgment",
+      "name": "Spellcaster's Judgment",
+      "category": "Structure Decks",
+      "year": 2006,
+      "source": {
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2006,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Spellcaster%27s_Judgment_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Spellcaster%27s_Judgment_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "invincible-fortress",
+      "name": "Invincible Fortress",
+      "category": "Structure Decks",
+      "year": 2006,
+      "source": {
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2006,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Invincible_Fortress_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Invincible_Fortress_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "lord-of-the-storm",
+      "name": "Lord of the Storm",
+      "category": "Structure Decks",
+      "year": 2006,
+      "source": {
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2006,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Lord_of_the_Storm_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Lord_of_the_Storm_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "dinosaurs-rage",
+      "name": "Dinosaur's Rage",
+      "category": "Structure Decks",
+      "year": 2006,
+      "source": {
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2006,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck%3A_Dinosaur%27s_Rage_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck%3A_Dinosaur%27s_Rage_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "machine-re-volt",
+      "name": "Machine Re-Volt",
+      "category": "Structure Decks",
+      "year": 2007,
+      "source": {
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2007,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Machine_Re-Volt_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStructure_Deck_-_Machine_Re-Volt_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "rise-of-the-dragon-lords",
+      "name": "Rise of the Dragon Lords",
+      "category": "Structure Decks",
+      "year": 2007,
+      "source": {
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2007,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3ARise_of_the_Dragon_Lords_Structure_Deck_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3ARise_of_the_Dragon_Lords_Structure_Deck_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "the-dark-emperor",
+      "name": "The Dark Emperor",
+      "category": "Structure Decks",
+      "year": 2008,
+      "source": {
+        "label": "Offizielles TCG Structure Deck",
+        "year": 2008,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AThe_Dark_Emperor_Structure_Deck_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AThe_Dark_Emperor_Structure_Deck_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "starter-deck-2006",
+      "name": "Starter Deck 2006",
+      "category": "Starter Decks",
+      "year": 2006,
+      "source": {
+        "label": "Offizielles TCG Starter Deck",
+        "year": 2006,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStarter_Deck_2006_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStarter_Deck_2006_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "starter-deck-jaden-yuki",
+      "name": "Starter Deck – Jaden Yuki",
+      "category": "Starter Decks",
+      "year": 2007,
+      "source": {
+        "label": "Offizielles TCG Starter Deck",
+        "year": 2007,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStarter_Deck_-_Jaden_Yuki_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStarter_Deck_-_Jaden_Yuki_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "starter-deck-syrus-truesdale",
+      "name": "Starter Deck – Syrus Truesdale",
+      "category": "Starter Decks",
+      "year": 2007,
+      "source": {
+        "label": "Offizielles TCG Starter Deck",
+        "year": 2007,
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStarter_Deck_-_Syrus_Truesdale_%28TCG-DE%29"
+      },
+      "import": {
+        "provider": "fandom-set-list",
+        "url": "https://yugioh.fandom.com/wiki/Set_Card_Lists%3AStarter_Deck_-_Syrus_Truesdale_%28TCG-DE%29"
+      },
+      "cards": []
+    },
+    {
+      "id": "tf2-elemental-hero",
+      "name": "Elemental HERO",
+      "category": "Themendecks",
+      "year": 2007,
+      "source": {
+        "label": "GX Tag Force 2 · Jaden Yuki",
+        "year": 2007,
+        "recipe": "Elemental Hero",
+        "url": "https://yugioh.fandom.com/wiki/Jaden_Yuki_%28Tag_Force%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Elemental HERO Avian",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Elemental HERO Burstinatrix",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Elemental HERO Clayman",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Elemental HERO Sparkman",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Elemental HERO Bladedge",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Elemental HERO Bubbleman",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Elemental HERO Captain Gold",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Elemental HERO Necroshade",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Elemental HERO Stratos",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Elemental HERO Wildheart",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "King of the Swamp",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Morphing Jar",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "De-Fusion",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "E - Emergency Call",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Fusion Recovery",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Heavy Storm",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Miracle Fusion",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mystical Space Typhoon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Polymerization",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Pot of Avarice",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Premature Burial",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "R - Righteous Justice",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Reinforcement of the Army",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Skyscraper",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "The Warrior Returning Alive",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Call of the Haunted",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Hero Signal",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Mirror Force",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Mirror Gate",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Elemental HERO Darkbright",
+          "qty": 2,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Elemental HERO Electrum",
+          "qty": 1,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Elemental HERO Flame Wingman",
+          "qty": 2,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Elemental HERO Mariner",
+          "qty": 1,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Elemental HERO Necroid Shaman",
+          "qty": 2,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Elemental HERO Shining Flare Wingman",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Elemental HERO Tempest",
+          "qty": 1,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Elemental HERO Thunder Giant",
+          "qty": 2,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Elemental HERO Wild Wingman",
+          "qty": 2,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Elemental HERO Wildedge",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        }
+      ]
+    },
+    {
+      "id": "tf2-vehicroid",
+      "name": "Vehicroid",
+      "category": "Themendecks",
+      "year": 2007,
+      "source": {
+        "label": "GX Tag Force 2 · Syrus Truesdale",
+        "year": 2007,
+        "recipe": "Me and My Roids",
+        "url": "https://yugioh.fandom.com/wiki/Syrus_Truesdale_%28Tag_Force%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Ambulanceroid",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Decoyroid",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Drillroid",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Gyroid",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Jetroid",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Rescueroid",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Steamroid",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Submarineroid",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "De-Fusion",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Heavy Storm",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Polymerization",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Power Bond",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Premature Burial",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Snatch Steal",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Swords of Revealing Light",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Call of the Haunted",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Cyber Summon Blaster",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Magic Cylinder",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Sakuretsu Armor",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Supercharge",
+          "qty": 3,
+          "type": "Falle"
+        },
+        {
+          "en": "Widespread Ruin",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Wonder Garage",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Ambulance Rescueroid",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Steam Gyroid",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Super Vehicroid Jumbo Drill",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        }
+      ]
+    },
+    {
+      "id": "tf2-cyber-angel",
+      "name": "Cyber Angel",
+      "category": "Themendecks",
+      "year": 2007,
+      "source": {
+        "label": "GX Tag Force 2 · Alexis Rhodes",
+        "year": 2007,
+        "recipe": "Cyber Angel",
+        "url": "https://yugioh.fandom.com/wiki/Alexis_Rhodes_%28Tag_Force%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Blade Skater",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Cyber Prima",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Etoile Cyber",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Harvest Angel of Wisdom",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Manju of the Ten Thousand Hands",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Marshmallon",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Morphing Jar",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Sangan",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Senju of the Thousand Hands",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Soul of Purity and Light",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Cyber Angel Benten",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Cyber Angel Dakini",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Cyber Angel Idaten",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Machine Angel Ritual",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Polymerization",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Premature Burial",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Reinforcement of the Army",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Swords of Revealing Light",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Call of the Haunted",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Divine Wrath",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Magic Drain",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Miraculous Descent",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Negate Attack",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Solemn Judgment",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Cyber Blader",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        }
+      ]
+    },
+    {
+      "id": "tf2-vwxyz",
+      "name": "VWXYZ / Ojama",
+      "category": "Themendecks",
+      "year": 2007,
+      "source": {
+        "label": "GX Tag Force 2 · Chazz Princeton",
+        "year": 2007,
+        "recipe": "Go, VWXYZ!",
+        "url": "https://yugioh.fandom.com/wiki/Chazz_Princeton_%28Tag_Force%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Ojama Black",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Ojama Green",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Ojama Yellow",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "V-Tiger Jet",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "X-Head Cannon",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "W-Wing Catapult",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Y-Dragon Head",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Z-Metal Tank",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Dimension Fusion",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Frontline Base",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Giant Trunade",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Heavy Storm",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Lightning Vortex",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Limiter Removal",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Luminous Spark",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Magical Mallet",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mystical Space Typhoon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Ojama Delta Hurricane!!",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Ojamagic",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Polymerization",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Pot of Avarice",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Premature Burial",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Swords of Revealing Light",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Call of the Haunted",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Ojama Trio",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Raigeki Break",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Ring of Destruction",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Roll Out!",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Ojama King",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "VW-Tiger Catapult",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "XY-Dragon Cannon",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "XYZ-Dragon Cannon",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "XZ-Tank Cannon",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "YZ-Tank Dragon",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        }
+      ]
+    },
+    {
+      "id": "tf2-great-dinos",
+      "name": "Dinosaur",
+      "category": "Themendecks",
+      "year": 2007,
+      "source": {
+        "label": "GX Tag Force 2 · Tyranno Hassleberry",
+        "year": 2007,
+        "recipe": "Great Dinos",
+        "url": "https://yugioh.fandom.com/wiki/Tyranno_Hassleberry_%28Tag_Force%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Sabersaurus",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Black Stego",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Black Tyranno",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Dark Driceratops",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Destroyersaurus",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Giant Rat",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Gilasaurus",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Hyper Hammerhead",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Morphing Jar",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Ultimate Tyranno",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Big Evolution Pill",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Giant Trunade",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Heavy Storm",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Jurassic World",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mystical Space Typhoon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Premature Burial",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Snatch Steal",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Tail Swipe",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "The Shallow Grave",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Call of the Haunted",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Dust Tornado",
+          "qty": 3,
+          "type": "Falle"
+        },
+        {
+          "en": "Hunting Instinct",
+          "qty": 2,
+          "type": "Falle"
+        }
+      ]
+    },
+    {
+      "id": "tf2-destiny-d",
+      "name": "Destiny HERO",
+      "category": "Themendecks",
+      "year": 2007,
+      "source": {
+        "label": "GX Tag Force 2 · Aster Phoenix",
+        "year": 2007,
+        "recipe": "Destiny D",
+        "url": "https://yugioh.fandom.com/wiki/Aster_Phoenix_%28Tag_Force%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Destiny HERO - Dasher",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Destiny HERO - Diamond Dude",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Destiny HERO - Disk Commander",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Destiny HERO - Dogma",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Destiny HERO - Double Dude",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Destiny HERO - Dreadmaster",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Destiny HERO - Fear Monger",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Destiny HERO - Malicious",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Clock Tower Prison",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Destiny Draw",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Heavy Storm",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mystical Space Typhoon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Pot of Avarice",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Premature Burial",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Reinforcement of the Army",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Terraforming",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Call of the Haunted",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Crush Card Virus",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "D - Chain",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "D - Counter",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Destiny Signal",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Eternal Dread",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Mirror Force",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Ring of Destruction",
+          "qty": 1,
+          "type": "Falle"
+        }
+      ]
+    },
+    {
+      "id": "tf2-crystal-beasts",
+      "name": "Crystal Beast",
+      "category": "Themendecks",
+      "year": 2007,
+      "source": {
+        "label": "GX Tag Force 2 · Jesse Anderson",
+        "year": 2007,
+        "recipe": "Crystal Beasts",
+        "url": "https://yugioh.fandom.com/wiki/Jesse_Anderson_%28Tag_Force%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Crystal Beast Amber Mammoth",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Crystal Beast Amethyst Cat",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Crystal Beast Cobalt Eagle",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Crystal Beast Emerald Tortoise",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Crystal Beast Ruby Carbuncle",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Crystal Beast Sapphire Pegasus",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Crystal Beast Topaz Tiger",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Ancient City - Rainbow Ruins",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Crystal Abundance",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Crystal Beacon",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Crystal Blessing",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Crystal Promise",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mage Power",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mystical Space Typhoon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Premature Burial",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Rare Value",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Swords of Revealing Light",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "United We Stand",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Beast Soul Swap",
+          "qty": 2,
+          "type": "Falle"
+        }
+      ]
+    },
+    {
+      "id": "tf2-dark-magician-girl",
+      "name": "Dark Magician",
+      "category": "Themendecks",
+      "year": 2007,
+      "source": {
+        "label": "GX Tag Force 2 · Dark Magician Girl",
+        "year": 2007,
+        "recipe": "C'mon, Master!",
+        "url": "https://yugioh.fandom.com/wiki/Dark_Magician_Girl_%28Tag_Force%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Dark Magician",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Apprentice Magician",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Dark Magician Girl",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Magician's Valkyria",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Mei-Kou, Master of Barriers",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Old Vindictive Magician",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Skilled Dark Magician",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Book of Moon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Heavy Storm",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Magical Dimension",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mystical Space Typhoon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Nobleman of Crossout",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Premature Burial",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Sage's Stone",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Scapegoat",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Snatch Steal",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Swords of Revealing Light",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Bottomless Trap Hole",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Call of the Haunted",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Crush Card Virus",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Dust Tornado",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Magician's Circle",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Mirror Force",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Ring of Destruction",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Torrential Tribute",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Dark Paladin",
+          "qty": 1,
+          "type": "Monster",
+          "zone": "extra"
+        }
+      ]
+    },
+    {
+      "id": "wc08-harpie",
+      "name": "Harpie",
+      "category": "Themendecks",
+      "year": 2008,
+      "source": {
+        "label": "World Championship 2008 · Harpie Lady 1",
+        "year": 2008,
+        "recipe": "Winged Arrival",
+        "url": "https://yugioh.fandom.com/wiki/Harpie_Lady_1_%28character%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Sonic Duck",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Birdface",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Flying Kamakiri #1",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Harpie Lady 1",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Harpie Lady Sisters",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Harpie Queen",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Harpie's Pet Baby Dragon",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Sangan",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Swift Birdman Joe",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Elegant Egotist",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Harpies' Hunting Ground",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Heavy Storm",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Lightning Vortex",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mystical Space Typhoon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Premature Burial",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Shrink",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Smashing Ground",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Call of the Haunted",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Dimensional Prison",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Dust Tornado",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Hysteric Party",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Icarus Attack",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Mirror Force",
+          "qty": 1,
+          "type": "Falle"
+        }
+      ]
+    },
+    {
+      "id": "wc08-cyber-dragon",
+      "name": "Cyber Dragon",
+      "category": "Themendecks",
+      "year": 2008,
+      "source": {
+        "label": "World Championship 2008 · Cyber End Dragon",
+        "year": 2008,
+        "recipe": "Cyber Diver",
+        "url": "https://yugioh.fandom.com/wiki/Cyber_End_Dragon_%28character%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Cyber Dragon",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Dekoichi the Battlechanted Locomotive",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Jinzo",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Marshmallon",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Morphing Jar",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Neo-Spacian Grand Mole",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Proto-Cyber Dragon",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Reflect Bounder",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "The Light - Hex-Sealed Fusion",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Big Bang Shot",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Future Fusion",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Giant Trunade",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Heavy Storm",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Limiter Removal",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mystical Space Typhoon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Nobleman of Crossout",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Overload Fusion",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Polymerization",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Pot of Avarice",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Power Bond",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Premature Burial",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Scapegoat",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Smashing Ground",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Call of the Haunted",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Dimensional Prison",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Dust Tornado",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Mirror Force",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Torrential Tribute",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Chimeratech Fortress Dragon",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Chimeratech Overdragon",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Cyber End Dragon",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        },
+        {
+          "en": "Cyber Twin Dragon",
+          "qty": 3,
+          "type": "Monster",
+          "zone": "extra"
+        }
+      ]
+    },
+    {
+      "id": "wc08-ancient-gear",
+      "name": "Ancient Gear",
+      "category": "Themendecks",
+      "year": 2008,
+      "source": {
+        "label": "World Championship 2008 · Ancient Gear Gadjiltron Dragon",
+        "year": 2008,
+        "recipe": "Ancient Mythology",
+        "url": "https://yugioh.fandom.com/wiki/Ancient_Gear_Gadjiltron_Dragon_%28character%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Ancient Gear Beast",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Ancient Gear Gadjiltron Chimera",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Ancient Gear Gadjiltron Dragon",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Ancient Gear Golem",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Ancient Gear Knight",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Giant Rat",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Green Gadget",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Marshmallon",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Red Gadget",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Spirit Reaper",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Yellow Gadget",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Fissure",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Hammer Shot",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Heavy Storm",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Limiter Removal",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mystical Space Typhoon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Nobleman of Crossout",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Pot of Avarice",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Premature Burial",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Scapegoat",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Shrink",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Smashing Ground",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Swords of Revealing Light",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Call of the Haunted",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Dust Tornado",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Mirror Force",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Sakuretsu Armor",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Ultimate Offering",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Wall of Revealing Light",
+          "qty": 1,
+          "type": "Falle"
+        }
+      ]
+    },
+    {
+      "id": "wc08-dark-world",
+      "name": "Dark World",
+      "category": "Themendecks",
+      "year": 2008,
+      "source": {
+        "label": "World Championship 2008 · Sillva",
+        "year": 2008,
+        "recipe": "Special Silver",
+        "url": "https://yugioh.fandom.com/wiki/Sillva%2C_Warlord_of_Dark_World_%28character%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Zure, Knight of Dark World",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Beiige, Vanguard of Dark World",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Broww, Huntsman of Dark World",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Brron, Mad King of Dark World",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Gren, Tactician of Dark World",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Kahkki, Guerilla of Dark World",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Mask of Darkness",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Reign-Beaux, Overlord of Dark World",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Scarr, Scout of Dark World",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Sillva, Warlord of Dark World",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Dark World Dealings",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Dark World Lightning",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Flash of the Forbidden Spell",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Gateway to Dark World",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mystical Space Typhoon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Smashing Ground",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "The Cheerful Coffin",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Twister",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Bottomless Trap Hole",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Call of the Haunted",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Dust Tornado",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Sakuretsu Armor",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "The Forces of Darkness",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Waboku",
+          "qty": 1,
+          "type": "Falle"
+        }
+      ]
+    },
+    {
+      "id": "wc08-six-samurai",
+      "name": "Six Samurai",
+      "category": "Themendecks",
+      "year": 2008,
+      "source": {
+        "label": "World Championship 2008 · Spirit of the Six Samurai",
+        "year": 2008,
+        "recipe": "Samurai Mayhem",
+        "url": "https://yugioh.fandom.com/wiki/Spirit_of_the_Six_Samurai_%28character%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Chamberlain of the Six Samurai",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Enishi, Shien's Chancellor",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Grandmaster of the Six Samurai",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Great Shogun Shien",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Shien's Footsoldier",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Spirit of the Six Samurai",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "The Six Samurai - Irou",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "The Six Samurai - Kamon",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "The Six Samurai - Nisashi",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "The Six Samurai - Yaichi",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "The Six Samurai - Yariza",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "The Six Samurai - Zanji",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Legendary Ebon Steed",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Reinforcement of the Army",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Shien's Castle of Mist",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Swords of Revealing Light",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "The A. Forces",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "The Warrior Returning Alive",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "United We Stand",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Backs to the Wall",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Return of the Six Samurai",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Solemn Judgment",
+          "qty": 3,
+          "type": "Falle"
+        },
+        {
+          "en": "Ultimate Offering",
+          "qty": 1,
+          "type": "Falle"
+        }
+      ]
+    },
+    {
+      "id": "wc08-gravekeeper",
+      "name": "Gravekeeper",
+      "category": "Themendecks",
+      "year": 2008,
+      "source": {
+        "label": "World Championship 2008 · Gravekeeper's Chief",
+        "year": 2008,
+        "recipe": "Gravekeeper's Deck",
+        "url": "https://yugioh.fandom.com/wiki/Gravekeeper%27s_Chief_%28character%29"
+      },
+      "notes": "",
+      "cards": [
+        {
+          "en": "Gravekeeper's Assailant",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Gravekeeper's Chief",
+          "qty": 2,
+          "type": "Monster"
+        },
+        {
+          "en": "Gravekeeper's Commandant",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Gravekeeper's Guard",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Gravekeeper's Spear Soldier",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Gravekeeper's Spy",
+          "qty": 3,
+          "type": "Monster"
+        },
+        {
+          "en": "Gravekeeper's Watcher",
+          "qty": 1,
+          "type": "Monster"
+        },
+        {
+          "en": "Field Barrier",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Heavy Storm",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Mystical Space Typhoon",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Necrovalley",
+          "qty": 3,
+          "type": "Zauber"
+        },
+        {
+          "en": "Royal Tribute",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Shrink",
+          "qty": 2,
+          "type": "Zauber"
+        },
+        {
+          "en": "Smashing Ground",
+          "qty": 1,
+          "type": "Zauber"
+        },
+        {
+          "en": "Deck Devastation Virus",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Dust Tornado",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Judgment of Anubis",
+          "qty": 1,
+          "type": "Falle"
+        },
+        {
+          "en": "Magician's Circle",
+          "qty": 2,
+          "type": "Falle"
+        },
+        {
+          "en": "Rite of Spirit",
+          "qty": 3,
+          "type": "Falle"
+        },
+        {
+          "en": "Solemn Judgment",
+          "qty": 1,
+          "type": "Falle"
         }
       ]
     }

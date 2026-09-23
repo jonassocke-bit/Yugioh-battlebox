@@ -1,44 +1,31 @@
-# Yu-Gi-Oh! Battle Box Library v0.6
+# Yu-Gi-Oh! Battle Box Library v0.9
 
-Diese Version trennt die Aufgaben:
+Enthalten: **29 Deck-Einträge**
 
-- GitHub Pages (`index.html`) = Deckansicht, Kartenstatus, PDF-Layout im Browser.
-- `decks.json` = dauerhafte Deckbibliothek.
-- `cards/` = dauerhafte gerenderte Karten.
-- Render.com (`server.mjs`) = rendert nur fehlende Karten in ca. 450 dpi.
-- Optional kann Render neue PNGs automatisch als **einen Commit** nach GitHub zurückschreiben.
+- 12 klassische Structure Decks (Dragon's Roar ist bereits aufgelöst; die übrigen werden beim ersten Öffnen einmalig importiert)
+- 3 Starter Decks (einmaliger Import)
+- 14 historische Themendecks aus GX Tag Force 2 und World Championship 2008
+- Kartenarchiv `cards/` auf GitHub
+- Render.com rendert nur fehlende Karten in ca. 450 dpi
+- PDF wird lokal im Browser erstellt
+- Vollbildansicht durch Antippen einer Karte
+- sichtbarer PDF-Öffnen/Download-Button
+- Server- und GitHub-Token-Status
+- Main-/Extra-Deck-Unterstützung
 
-## Dateien ins Repo
-Alle Dateien aus diesem ZIP in den Root von `jonassocke-bit/Yugioh-battlebox` kopieren.
-Der Ordner `cards/` muss ebenfalls vorhanden sein; `.gitkeep` hält ihn zunächst im Repo.
+## Upload
+Diese vier Dateien im Repo-Root ersetzen:
+- `index.html`
+- `decks.json`
+- `server.mjs`
+- `package.json`
 
-## Render.com
-Der bestehende Service kann weiterverwendet werden:
-- Build Command: `npm install`
-- Start Command: `npm start`
+Render baut danach wegen der neuen Abhängigkeit `cheerio` einmal neu.
 
-### Für automatische GitHub-Speicherung
-Auf Render unter Environment setzen:
-- `GITHUB_TOKEN` = Fine-grained GitHub Token, nur für dieses Repo, Berechtigung **Contents: Read and write**
-- `GITHUB_REPO` = `jonassocke-bit/Yugioh-battlebox`
-- `GITHUB_BRANCH` = `main`
+## Wichtig
+Die automatischen GitHub-Commits des Servers verwenden `[skip render]`.
+Dadurch lösen neu archivierte Karten und einmalig importierte Decklisten keinen unnötigen Render-Neustart aus.
 
-Ohne Token funktioniert das Rendern ebenfalls. Die Bilder bleiben dann aber nur temporär auf Render und gehen bei einem Neustart verloren.
-
-## Deckdaten
-Neue Decks werden künftig nur noch in `decks.json` ergänzt.
-Der Renderer und das PDF-Layout müssen dafür nicht neu gebaut werden.
-
-### Kartenobjekt
-```json
-{
-  "key": "optional-eigener-asset-key",
-  "set": "SD1-DE011",
-  "en": "Mystical Space Typhoon",
-  "de": "Mystischer Raum-Taifun",
-  "type": "Zauber",
-  "qty": 1
-}
-```
-
-Wenn `key` fehlt, wird der Setcode als Bildschlüssel genutzt. Dadurch kann ein offizielles Deck exakt seinen eigenen Setcode auf der Karte behalten.
+## Persistenz
+Für dauerhafte Kartenspeicherung muss auf Render weiterhin `GITHUB_TOKEN`
+mit `Contents: Read and write` für `jonassocke-bit/Yugioh-battlebox` gesetzt sein.

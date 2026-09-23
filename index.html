@@ -26,13 +26,13 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 .bottomIn{max-width:880px;margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn{border:0;border-radius:13px;padding:13px 10px;font:inherit;font-weight:760}.pri{background:var(--gold);color:#18130a}.sec{background:var(--panel2);color:#fff;border:1px solid var(--line)}.btn:disabled{opacity:.38}
 .sheetBg{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:40;display:none}.sheetBg.open{display:block}.sheet{position:absolute;left:0;right:0;bottom:0;max-height:82vh;background:#141922;border:1px solid var(--line);border-radius:22px 22px 0 0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));overflow:auto}.handle{width:42px;height:5px;background:#4c5563;border-radius:99px;margin:0 auto 12px}.sheetTitle{font-size:20px;font-weight:760;margin:2px 3px 10px}
 .deckGroupTitle{font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:800;margin:15px 5px 6px;text-transform:uppercase}.deckItem{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel);color:#fff;border-radius:13px;padding:11px 12px;margin:7px 0}.deckItem b{display:block;font-size:14px}.deckItem small{display:block;color:var(--muted);font-size:10px;margin-top:4px;line-height:1.35}
-.toast{position:fixed;z-index:60;left:14px;right:14px;bottom:calc(88px + env(safe-area-inset-bottom));max-width:560px;margin:auto;background:#222a35;border:1px solid #3b4656;border-radius:14px;padding:12px 13px;font-size:12px;display:none;box-shadow:0 12px 35px rgba(0,0,0,.35)}.toast.show{display:block}
+.pdfDownload{display:none;grid-column:1/-1;text-decoration:none;text-align:center}.pdfDownload.show{display:block}.viewer{position:fixed;z-index:100;inset:0;background:rgba(0,0,0,.96);display:none;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));cursor:pointer}.viewer.open{display:flex}.viewer img{display:block;max-width:min(94vw,620px);max-height:90vh;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 18px 42px rgba(0,0,0,.55))}.viewerHint{position:absolute;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom));text-align:center;font-size:11px;color:#aab2bf;pointer-events:none}.thumb.hasImage{cursor:zoom-in}.toast{position:fixed;z-index:60;left:14px;right:14px;bottom:calc(88px + env(safe-area-inset-bottom));max-width:560px;margin:auto;background:#222a35;border:1px solid #3b4656;border-radius:14px;padding:12px 13px;font-size:12px;display:none;box-shadow:0 12px 35px rgba(0,0,0,.35)}.toast.show{display:block}
 @media(max-width:520px){.controls{grid-template-columns:1fr 1fr}.cardRow{grid-template-columns:51px minmax(0,1fr) auto}.thumb{width:47px;height:68px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.6</div>
+  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.7</div>
   <h1 id="deckTitle" class="title">Deck laden …</h1>
   <div id="deckSource" class="source"></div>
 
@@ -45,7 +45,7 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
     <div class="stats">
       <span class="pill">Deck <b id="totalCount">–</b></span>
       <span class="pill">Unterschiedlich <b id="uniqueCount">–</b></span>
-      <span class="pill">Archiv <b id="archiveCount">–</b></span>
+      <span class="pill">Verfügbar <b id="availableCount">–</b></span><span class="pill">GitHub <b id="archiveCount">–</b></span>
       <span class="pill">Render <b>450 dpi</b></span>
     </div>
 
@@ -71,6 +71,7 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 <div class="bottom"><div class="bottomIn">
   <button id="renderMissing" class="btn sec">Fehlende rendern</button>
   <button id="makePdf" class="btn pri">PDF erstellen</button>
+<a id="pdfDownload" class="btn sec pdfDownload" href="#" target="_blank" rel="noopener">PDF öffnen / herunterladen</a>
 </div></div>
 
 <div id="sheetBg" class="sheetBg"><div class="sheet" onclick="event.stopPropagation()">
@@ -81,6 +82,10 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 </div></div>
 
 <div id="toast" class="toast"></div>
+<div id="viewer" class="viewer" aria-hidden="true">
+  <img id="viewerImg" alt="Kartenansicht">
+  <div class="viewerHint">Zum Schließen erneut auf die Karte tippen</div>
+</div>
 
 <script>
 const RENDER_SERVER='https://yugioh-battlebox.onrender.com';
@@ -89,7 +94,7 @@ const layouts={
   a3tight:{w:420,h:297,cols:7,rows:3,label:'A3 maximal'},
   sra3:{w:320,h:450,cols:5,rows:5,label:'SRA3'}
 };
-let library=null,currentDeck=null,quantities={},assetState=new Map(),tempSources=new Map(),activeJob=null,pollTimer=null;
+let library=null,currentDeck=null,quantities={},assetState=new Map(),tempSources=new Map(),activeJob=null,pollTimer=null,pdfBlobUrl=null;
 
 const $=id=>document.getElementById(id);
 function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
@@ -112,10 +117,12 @@ function loadQty(deck){
 }
 function updateStats(){
   const cards=currentCards(),total=copies().length;
-  const ok=cards.filter(c=>['ok','temp'].includes(assetState.get(keyOf(c))?.state)).length;
+  const available=cards.filter(c=>['ok','temp'].includes(assetState.get(keyOf(c))?.state)).length;
+  const github=cards.filter(c=>assetState.get(keyOf(c))?.state==='ok').length;
   $('totalCount').textContent=total;
   $('uniqueCount').textContent=cards.length;
-  $('archiveCount').textContent=`${ok}/${cards.length}`;
+  $('availableCount').textContent=`${available}/${cards.length}`;
+  $('archiveCount').textContent=`${github}/${cards.length}`;
   $('makePdf').disabled=cards.some(c=>!['ok','temp'].includes(assetState.get(keyOf(c))?.state));
   const missing=cards.filter(c=>!['ok','temp'].includes(assetState.get(keyOf(c))?.state)).length;
   $('renderMissing').disabled=!missing || Boolean(activeJob);
@@ -157,6 +164,20 @@ function imageUrl(c){
   if(st==='temp')return tempSources.get(k);
   return '';
 }
+function openViewer(url,name='Karte'){
+  if(!url)return;
+  $('viewerImg').src=url;
+  $('viewerImg').alt=name;
+  $('viewer').classList.add('open');
+  $('viewer').setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+}
+function closeViewer(){
+  $('viewer').classList.remove('open');
+  $('viewer').setAttribute('aria-hidden','true');
+  $('viewerImg').src='';
+  document.body.style.overflow='';
+}
 function statusHtml(c){
   const st=assetState.get(keyOf(c))?.state||'checking';
   if(st==='ok')return '<div class="status s-ok">● vorhanden</div>';
@@ -180,17 +201,19 @@ function renderCardList(){
       const url=imageUrl(c);
       const row=document.createElement('div');row.className='cardRow';
       row.innerHTML=`
-        <div class="thumb ${url?'':'missing'}" ${url?`style="background-image:url('${url.replace(/'/g,'%27')}')"`:''}></div>
+        <div class="thumb ${url?'hasImage':'missing'}" ${url?`style="background-image:url('${url.replace(/'/g,'%27')}')"`:''}></div>
         <div>
           <div class="cardName">${esc(c.de)}</div>
           <div class="cardMeta">${esc(c.set||'ohne Setcode')} · ${esc(c.en)}</div>
           ${statusHtml(c)}
         </div>
         <div class="qty"><button data-d="-1">−</button><span>${qty(c)}</span><button data-d="1">+</button></div>`;
+      const thumb=row.querySelector('.thumb');
+      if(url)thumb.onclick=()=>openViewer(url,c.de||c.en);
       row.querySelectorAll('button').forEach(b=>b.onclick=()=>{
         const id=c.set||keyOf(c);
         quantities[id]=Math.max(0,Math.min(9,qty(c)+Number(b.dataset.d)));
-        savePrefs();renderCardList();updateStats();
+        savePrefs();$('pdfDownload').classList.remove('show');renderCardList();updateStats();
       });
       group.appendChild(row);
     }
@@ -207,6 +230,7 @@ function showDeck(deck){
   $('pickerMeta').textContent=sourceText(deck);
   $('search').value='';
   savePrefs();
+  $('pdfDownload').classList.remove('show');
   renderCardList();
   checkAssets();
 }
@@ -359,15 +383,24 @@ async function makePdf(){
     }
     drawMarks(doc,cfg,sx,sy,cw,ch);
   }
-  setProgress(.98,'PDF wird gespeichert …');
+  setProgress(.98,'PDF wird vorbereitet …');
   const filename=`${currentDeck.id}_${$('layout').value}_450dpi.pdf`;
-  doc.save(filename);
-  setProgress(1,'PDF fertig');
+  const blob=doc.output('blob');
+  if(pdfBlobUrl)URL.revokeObjectURL(pdfBlobUrl);
+  pdfBlobUrl=URL.createObjectURL(blob);
+  const link=$('pdfDownload');
+  link.href=pdfBlobUrl;
+  link.download=filename;
+  link.classList.add('show');
+  link.textContent='PDF öffnen / herunterladen';
+  setProgress(1,'PDF fertig · unten auf „PDF öffnen / herunterladen“ tippen');
+  toast('PDF ist fertig. Über den neuen Button kannst du sie öffnen bzw. auf dem iPhone speichern.',6500);
 }
 async function init(){
   $('layout').value=localStorage.getItem('ygo_layout')||'a3safe';
   $('marks').value=localStorage.getItem('ygo_marks')||'1';
-  $('layout').onchange=savePrefs;$('marks').onchange=savePrefs;
+  $('layout').onchange=()=>{savePrefs();$('pdfDownload').classList.remove('show')};$('marks').onchange=()=>{savePrefs();$('pdfDownload').classList.remove('show')};
+  $('viewer').onclick=closeViewer;
   $('deckPicker').onclick=openPicker;$('sheetBg').onclick=closePicker;$('deckSearch').oninput=renderDeckItems;
   $('search').oninput=renderCardList;$('renderMissing').onclick=startRender;$('makePdf').onclick=makePdf;
 

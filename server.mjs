@@ -44,9 +44,13 @@ const RACE_DE = {
   'Warrior':'KRIEGER','Winged Beast':'GEFLÜGELTES UNGEHEUER','Wyrm':'WYRM','Zombie':'ZOMBIE'
 };
 const iconMap = {
-  'Equip Card':'equip','Field Spell':'field','Quick-Play Spell':'quick-play',
-  'Ritual Spell':'ritual','Continuous Spell':'continuous',
-  'Continuous Trap':'continuous','Counter Trap':'counter'
+  'Equip': 'equip', 'Equip Card':'equip',
+  'Field': 'field', 'Field Spell':'field',
+  'Quick-Play': 'quick-play', 'Quick Play': 'quick-play', 'Quick-Play Spell':'quick-play',
+  'Ritual': 'ritual', 'Ritual Spell':'ritual',
+  'Continuous': 'continuous', 'Continuous Spell':'continuous', 'Continuous Trap':'continuous',
+  'Counter': 'counter', 'Counter Trap':'counter',
+  'Normal': ''
 };
 
 function safeKey(s=''){
@@ -57,6 +61,30 @@ function cardKey(card){ return safeKey(card.key || card.set || card.en); }
 function norm(s=''){ return safeKey(String(s).replace(/&/g,'and')); }
 function cleanText(s=''){
   return String(s).replace(/\[[^\]]*\]/g,'').replace(/\s+/g,' ').trim();
+}
+function spellTrapIcon(en,de){
+  const raw = String((en && en.race) || (de && de.race) || '').trim();
+  return iconMap[raw] ?? '';
+}
+function descriptionStyle(desc, type){
+  const raw = String(desc || '');
+  const len = cleanText(raw).length;
+  const breaks = (raw.match(/\n/g) || []).length;
+  const bulletCount = (raw.match(/●/g) || []).length;
+  const pressure = len + breaks * 22 + bulletCount * 14;
+
+  if(type === 'monster'){
+    if(pressure >= 270) return { descriptionZoom: 0.76, firstLineCompress: true, descriptionWeight: -0.06 };
+    if(pressure >= 235) return { descriptionZoom: 0.82, firstLineCompress: true, descriptionWeight: -0.04 };
+    if(pressure >= 205) return { descriptionZoom: 0.88, firstLineCompress: true, descriptionWeight: -0.02 };
+    if(pressure >= 175) return { descriptionZoom: 0.94, firstLineCompress: true, descriptionWeight: 0 };
+    return { descriptionZoom: 1, firstLineCompress: false, descriptionWeight: 0 };
+  }
+
+  if(pressure >= 240) return { descriptionZoom: 0.80, firstLineCompress: true, descriptionWeight: -0.05 };
+  if(pressure >= 205) return { descriptionZoom: 0.86, firstLineCompress: true, descriptionWeight: -0.03 };
+  if(pressure >= 170) return { descriptionZoom: 0.92, firstLineCompress: true, descriptionWeight: -0.01 };
+  return { descriptionZoom: 1, firstLineCompress: false, descriptionWeight: 0 };
 }
 function mainType(en){
   if((en.type||'').includes('Spell')) return 'spell';
@@ -135,18 +163,23 @@ async function artworkDataUrl(en){
   return data;
 }
 function rendererData(card,en,de,artwork){
-  const type=mainType(en);
+  const type = mainType(en);
+  const desc = de.desc || en.desc || '';
+  const textFit = descriptionStyle(desc, type);
+  const stIcon = type === 'monster' ? '' : spellTrapIcon(en,de);
   return {
     language:'en',font:'',name:de.name||card.de||en.name,color:'',align:'left',gradient:false,
-    type,attribute:(en.attribute||'').toLowerCase(),icon:iconMap[en.race]||'',image:artwork,
+    type,attribute:(en.attribute||'').toLowerCase(),icon:stIcon,iconName:stIcon,image:artwork,
     cardType:cardType(en),pendulumType:'normal-pendulum',level:en.level||0,rank:en.level||0,
     pendulumScale:0,pendulumDescription:'',monsterType:type==='monster'?germanMonsterType(en):'',
     atkBar:true,atk:Number.isFinite(en.atk)?en.atk:0,def:Number.isFinite(en.def)?en.def:0,
-    arrowList:[],description:de.desc||en.desc||'',firstLineCompress:false,descriptionAlign:false,
-    descriptionZoom:1,descriptionWeight:0,package:card.set||'',password:String(en.id||''),
-    copyright:'en',laser:'',rare:'',twentieth:false,radius:true,scale:RENDER_SCALE
+    arrowList:[],description:desc,descriptionAlign:false,
+    package:card.set||'',password:String(en.id||''),copyright:'en',laser:'',rare:'',
+    twentieth:false,radius:true,scale:RENDER_SCALE,
+    ...textFit
   };
 }
+
 function pngFromExport(data){
   if(Buffer.isBuffer(data)) return data;
   const m=String(data||'').match(/^data:image\/(?:png|jpeg);base64,(.+)$/);
@@ -323,7 +356,7 @@ app.get('/',async(req,res)=>{
   res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
   <body style="font-family:-apple-system;background:#0e1116;color:#fff;padding:24px">
   <h1>YGO Card Renderer</h1>
-  <p>Battle-Box Render-Service · 450 dpi</p>
+  <p>Battle-Box Render-Service · 450 dpi · Text-Fit + Spell/Trap-Icons</p>
   <p>Server: <b style="color:#63d69a">läuft</b></p>
   <p>GitHub: <b style="color:${ghColor}">${ghState.message}</b></p>
   <p>Deckbibliothek: <b>${library.decks?.length||0} Decks</b></p>
@@ -334,7 +367,7 @@ app.get('/health',async(req,res)=>{
   res.setHeader('Cache-Control','no-store');
   const ghState=await githubHealth();
   res.json({
-    ok:true,version:'0.10-hardcoded-library',dpi:450,scale:RENDER_SCALE,
+    ok:true,version:'0.11-textfit-icons',dpi:450,scale:RENDER_SCALE,
     githubPersistence:ghState.status==='ok',
     githubStatus:ghState.status,
     githubWritable:ghState.writable,

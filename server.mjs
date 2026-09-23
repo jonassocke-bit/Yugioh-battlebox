@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import skia from 'skia-canvas';
 import { PDFDocument } from 'pdf-lib';
 import { YugiohCard } from 'yugioh-card';
@@ -9,10 +10,12 @@ const PORT = Number(process.env.PORT || 10000);
 const ASSET_ROOT = path.resolve('renderer-assets/yugioh-card');
 const MM = 72 / 25.4;
 
-// Zielauflösung etwas reduziert für schnelleren Render:
-// 59 × 86 mm bei ca. 450 dpi ≈ 1046 × 1524 px
-const TARGET_W = 1046;
-const TARGET_H = 1524;
+// Native renderer: 1394 × 2031 px.
+// scale 0.5 => ca. 697 × 1016 px = ziemlich genau 300 dpi bei 59 × 86 mm.
+// WICHTIG: Wir rendern direkt kleiner statt erst hinterher herunterzuskalieren.
+const RENDER_SCALE = 0.5;
+const TARGET_W = Math.round(1394 * RENDER_SCALE);
+const TARGET_H = Math.round(2031 * RENDER_SCALE);
 
 const TEST_CARDS = [
   { en: 'Red-Eyes Darkness Dragon', de: 'Rotäugiger Finsterer Drache', set: 'SD1-DE001' },
@@ -23,6 +26,7 @@ const TEST_CARDS = [
 const metaCache = new Map();
 const artworkCache = new Map();
 const renderCache = new Map();
+const jobs = new Map();
 
 const RACE_DE = {
   'Aqua': 'AQUA',
@@ -171,7 +175,7 @@ function rendererData(card, en, de, artwork) {
     rare: '',
     twentieth: false,
     radius: true,
-    scale: 1
+    scale: RENDER_SCALE
   };
 }
 
@@ -181,14 +185,6 @@ function dataUrlToBuffer(data) {
   const m = data.match(/^data:image\/(?:png|jpeg);base64,(.+)$/);
   if (!m) throw new Error('Renderer lieferte keine PNG/JPEG-Data-URL');
   return Buffer.from(m[1], 'base64');
-}
-
-async function downscalePng(pngBuffer, width = TARGET_W, height = TARGET_H) {
-  const img = await skia.loadImage(pngBuffer);
-  const canvas = new skia.Canvas(width, height);
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0, width, height);
-  return await canvas.toBuffer('png');
 }
 
 async function renderCard(card) {
@@ -220,8 +216,7 @@ async function renderCard(card) {
       throw new Error(result?.error?.message || 'Renderer-Export fehlgeschlagen');
     }
 
-    const rawPng = dataUrlToBuffer(result.data);
-    const png = await downscalePng(rawPng);
+    const png = dataUrlToBuffer(result.data);
     renderCache.set(card.en, png);
     return png;
   } finally {
@@ -240,7 +235,7 @@ async function fetchFullScan(card) {
   return Buffer.from(await r.arrayBuffer());
 }
 
-async function makeThreeCardPdf(mode='render') {
+async function makeThreeCardPdf(mode='render', progress=()=>{}) {
   const pdf = await PDFDocument.create();
   const page = pdf.addPage([420*MM, 297*MM]);
 
@@ -252,7 +247,14 @@ async function makeThreeCardPdf(mode='render') {
   let x = (420*MM - totalW) / 2;
   const y = (297*MM - ch) / 2;
 
-  for (const card of TEST_CARDS) {
+  for (let i = 0; i < TEST_CARDS.length; i++) {
+    const card = TEST_CARDS[i];
+
+    progress({
+      progress: 0.08 + (i / TEST_CARDS.length) * 0.78,
+      label: `${mode === 'render' ? 'Render' : 'Scan'} ${i+1}/${TEST_CARDS.length}: ${card.de}`
+    });
+
     const bytes = mode === 'scan' ? await fetchFullScan(card) : await renderCard(card);
 
     let img;
@@ -267,8 +269,95 @@ async function makeThreeCardPdf(mode='render') {
     x += cw + gap;
   }
 
-  return Buffer.from(await pdf.save());
+  progress({ progress: 0.92, label: 'PDF wird zusammengesetzt …' });
+  const result = Buffer.from(await pdf.save());
+  progress({ progress: 1, label: 'Fertig' });
+  return result;
 }
+
+/* ---------- Job-System für sichtbaren Fortschritt ---------- */
+
+function createJob() {
+  const id = crypto.randomUUID();
+  jobs.set(id, {
+    id,
+    state: 'queued',
+    progress: 0,
+    label: 'Wartet …',
+    result: null,
+    contentType: null,
+    filename: null,
+    error: null,
+    createdAt: Date.now()
+  });
+  return jobs.get(id);
+}
+
+function patchJob(job, patch) {
+  Object.assign(job, patch);
+}
+
+function jobPublic(job) {
+  return {
+    id: job.id,
+    state: job.state,
+    progress: job.progress,
+    label: job.label,
+    error: job.error,
+    ready: job.state === 'done'
+  };
+}
+
+async function runJob(job, task, mode) {
+  try {
+    patchJob(job, { state: 'running', progress: 0.03, label: 'Server bereitet den Auftrag vor …' });
+
+    if (task === 'card') {
+      patchJob(job, { progress: 0.12, label: 'Kartendaten + Artwork werden geladen …' });
+      const png = await renderCard(TEST_CARDS[1]);
+      patchJob(job, {
+        state: 'done',
+        progress: 1,
+        label: 'Fertig',
+        result: png,
+        contentType: 'image/png',
+        filename: 'Bewaffneter_Drache_LV3.png'
+      });
+      return;
+    }
+
+    if (task === 'pdf') {
+      const selected = mode === 'scan' ? 'scan' : 'render';
+      const pdf = await makeThreeCardPdf(selected, p => patchJob(job, p));
+      patchJob(job, {
+        state: 'done',
+        progress: 1,
+        label: 'Fertig',
+        result: pdf,
+        contentType: 'application/pdf',
+        filename: `YGO_${selected}_test.pdf`
+      });
+      return;
+    }
+
+    throw new Error('Unbekannter Auftrag');
+  } catch (e) {
+    console.error(e);
+    patchJob(job, {
+      state: 'error',
+      label: 'Fehler',
+      error: String(e.stack || e.message || e)
+    });
+  }
+}
+
+// Alte Jobs nach 20 Minuten löschen.
+setInterval(() => {
+  const cutoff = Date.now() - 20 * 60 * 1000;
+  for (const [id, job] of jobs) {
+    if (job.createdAt < cutoff) jobs.delete(id);
+  }
+}, 5 * 60 * 1000).unref();
 
 function shell(title, body) {
   return `<!doctype html>
@@ -286,10 +375,18 @@ function shell(title, body) {
       h1{font-size:31px;margin:6px 0 8px}
       .sub{color:#a7b0bf;line-height:1.5}
       .card{margin-top:18px;background:#171c24;border:1px solid #313a49;border-radius:18px;padding:16px}
-      .btn{display:block;width:100%;text-align:center;text-decoration:none;padding:15px;border-radius:14px;margin:10px 0;background:#202733;border:1px solid #394353;color:#fff;font-weight:700}
+      .btn{display:block;width:100%;text-align:center;text-decoration:none;padding:15px;border-radius:14px;margin:10px 0;background:#202733;border:1px solid #394353;color:#fff;font-weight:700;font:inherit}
+      button.btn{cursor:pointer}
       .primary{background:#e8c56a;color:#18130a;border:0}
       .ok{color:#63d69a}
+      .bad{color:#ef7373;white-space:pre-wrap;font-size:12px}
       .small{font-size:12px;color:#9da8b8;line-height:1.45}
+      .progressbox{margin-top:16px;display:none}
+      .bar{height:12px;background:#2a303a;border-radius:999px;overflow:hidden}
+      .bar > i{display:block;width:0;height:100%;background:#e8c56a;transition:width .25s ease}
+      .progressrow{display:flex;justify-content:space-between;gap:12px;margin-top:8px;font-size:13px;color:#a7b0bf}
+      #progressLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      button:disabled{opacity:.45}
     </style>
   </head>
   <body><div class="wrap">${body}</div></body>
@@ -298,39 +395,148 @@ function shell(title, body) {
 
 app.get('/', (req,res) => {
   res.type('html').send(shell('YGO Render Test', `
-    <div class="sub">CLASSIC BATTLE BOX · SERVER-TEST V0.3</div>
+    <div class="sub">CLASSIC BATTLE BOX · SERVER-TEST V0.4</div>
     <h1>Dragon's Roar</h1>
-    <div class="sub">Artwork serverseitig eingebettet, Monstertypen deutsch übersetzt und Rendergröße für schnellere Tests auf ca. <b>450 dpi</b> reduziert.</div>
+    <div class="sub">
+      Jetzt direkt auf ca. <b>300 dpi</b> gerendert (${TARGET_W} × ${TARGET_H} px/Karte).
+      Dazu gibt es einen echten Fortschrittsbalken für Server-Aufträge.
+    </div>
+
     <div class="card">
       <div class="ok"><b>Server läuft.</b></div>
-      <a class="btn primary" href="/test-card">1. Testkarte rendern</a>
-      <a class="btn" href="/test-pdf?mode=render">2. 3-Karten Render-PDF</a>
-      <a class="btn" href="/test-pdf?mode=scan">3. 3-Karten Scan-PDF</a>
-      <div class="small">Bei der Testkarte müssen jetzt Artwork und „DRACHE / EFFEKT“ sichtbar sein.</div>
+      <button class="btn primary jobBtn" data-task="card">1. Testkarte rendern</button>
+      <button class="btn jobBtn" data-task="pdf" data-mode="render">2. 3-Karten Render-PDF</button>
+      <button class="btn jobBtn" data-task="pdf" data-mode="scan">3. 3-Karten Scan-PDF</button>
+
+      <div id="progressBox" class="progressbox">
+        <div class="bar"><i id="progressFill"></i></div>
+        <div class="progressrow">
+          <span id="progressLabel">Start …</span>
+          <b id="progressPct">0 %</b>
+        </div>
+      </div>
+
+      <div id="errorBox" class="bad"></div>
+
+      <div class="small" style="margin-top:14px">
+        Für die fertige 40-Karten-Version kann derselbe Balken dann z. B.
+        „Render 17/28 · Maskierter Drache“ anzeigen.
+      </div>
     </div>
+
+    <script>
+      const buttons=[...document.querySelectorAll('.jobBtn')];
+      const box=document.getElementById('progressBox');
+      const fill=document.getElementById('progressFill');
+      const label=document.getElementById('progressLabel');
+      const pct=document.getElementById('progressPct');
+      const err=document.getElementById('errorBox');
+
+      function setBusy(busy){
+        buttons.forEach(b=>b.disabled=busy);
+      }
+
+      async function startJob(task,mode=''){
+        setBusy(true);
+        err.textContent='';
+        box.style.display='block';
+        fill.style.width='2%';
+        label.textContent='Auftrag wird gestartet …';
+        pct.textContent='2 %';
+
+        try{
+          const qs=new URLSearchParams({task});
+          if(mode) qs.set('mode',mode);
+
+          const start=await fetch('/api/job?'+qs,{method:'POST'});
+          const sj=await start.json();
+          if(!start.ok) throw new Error(sj.error||'Auftrag konnte nicht gestartet werden.');
+
+          const id=sj.id;
+
+          while(true){
+            await new Promise(r=>setTimeout(r,500));
+            const r=await fetch('/api/job/'+id,{cache:'no-store'});
+            const j=await r.json();
+
+            const p=Math.max(0,Math.min(1,Number(j.progress)||0));
+            fill.style.width=(p*100).toFixed(1)+'%';
+            pct.textContent=Math.round(p*100)+' %';
+            label.textContent=j.label||'…';
+
+            if(j.state==='done'){
+              fill.style.width='100%';
+              pct.textContent='100 %';
+              label.textContent='Fertig – Datei wird geöffnet …';
+              setTimeout(()=>location.href='/api/job/'+id+'/file',300);
+              return;
+            }
+
+            if(j.state==='error'){
+              throw new Error(j.error||'Unbekannter Serverfehler');
+            }
+          }
+        }catch(e){
+          err.textContent=String(e.message||e);
+          label.textContent='Fehler';
+        }finally{
+          setBusy(false);
+        }
+      }
+
+      buttons.forEach(b=>{
+        b.addEventListener('click',()=>startJob(b.dataset.task,b.dataset.mode||''));
+      });
+    </script>
   `));
 });
 
 app.get('/health', (req,res) => res.json({
   ok: true,
-  version: '0.3-downscaled-450dpi',
+  version: '0.4-300dpi-progress',
   node: process.version,
   assets: ASSET_ROOT,
+  renderScale: RENDER_SCALE,
   targetWidth: TARGET_W,
   targetHeight: TARGET_H
 }));
 
+app.post('/api/job', (req,res) => {
+  const task = req.query.task;
+  const mode = req.query.mode;
+  if (!['card','pdf'].includes(task)) {
+    return res.status(400).json({ error: 'Ungültiger Auftrag' });
+  }
+
+  const job = createJob();
+  runJob(job, task, mode);
+  res.status(202).json({ id: job.id });
+});
+
+app.get('/api/job/:id', (req,res) => {
+  const job = jobs.get(req.params.id);
+  if (!job) return res.status(404).json({ error: 'Auftrag nicht gefunden' });
+  res.setHeader('Cache-Control','no-store');
+  res.json(jobPublic(job));
+});
+
+app.get('/api/job/:id/file', (req,res) => {
+  const job = jobs.get(req.params.id);
+  if (!job) return res.status(404).send('Auftrag nicht gefunden');
+  if (job.state !== 'done' || !job.result) return res.status(409).send('Datei noch nicht fertig');
+
+  res.setHeader('Content-Type', job.contentType);
+  res.setHeader('Content-Disposition', `inline; filename="${job.filename}"`);
+  res.send(job.result);
+});
+
+// Direkte URLs bleiben als Fallback erhalten.
 app.get('/test-card', async (req,res) => {
   try {
     const png = await renderCard(TEST_CARDS[1]);
-    res.setHeader('Content-Type','image/png');
-    res.setHeader('Content-Disposition','inline; filename="Bewaffneter_Drache_LV3.png"');
-    res.send(png);
+    res.type('png').send(png);
   } catch (e) {
-    console.error(e);
-    res.status(500).type('html').send(shell('Renderfehler',
-      `<h1>Renderfehler</h1><div class="card"><div style="color:#ef7373">${esc(e.stack || e.message || e)}</div></div>`
-    ));
+    res.status(500).type('text').send(String(e.stack || e.message || e));
   }
 });
 
@@ -338,18 +544,12 @@ app.get('/test-pdf', async (req,res) => {
   try {
     const mode = req.query.mode === 'scan' ? 'scan' : 'render';
     const pdf = await makeThreeCardPdf(mode);
-
-    res.setHeader('Content-Type','application/pdf');
-    res.setHeader('Content-Disposition',`inline; filename="YGO_${mode}_test.pdf"`);
-    res.send(pdf);
+    res.type('pdf').send(pdf);
   } catch (e) {
-    console.error(e);
-    res.status(500).type('html').send(shell('PDF-Fehler',
-      `<h1>PDF-Fehler</h1><div class="card"><div style="color:#ef7373">${esc(e.stack || e.message || e)}</div></div>`
-    ));
+    res.status(500).type('text').send(String(e.stack || e.message || e));
   }
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`YGO render test v0.3 listening on ${PORT}`);
+  console.log(`YGO render test v0.4 listening on ${PORT}`);
 });

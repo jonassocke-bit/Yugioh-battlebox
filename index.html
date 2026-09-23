@@ -32,7 +32,7 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 </head>
 <body>
 <div class="app">
-  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.9</div>
+  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.10</div>
   <h1 id="deckTitle" class="title">Deck laden …</h1>
   <div id="deckSource" class="source"></div>
 
@@ -237,7 +237,7 @@ function renderCardList(){
 
   if(!(currentDeck.cards||[]).length){
     const empty=document.createElement('div');empty.className='box';
-    empty.innerHTML='<div class="pad source">Diese offizielle Deckliste wird beim ersten Öffnen einmalig aus der hinterlegten Quelle geladen.</div>';
+    empty.innerHTML='<div class="pad source">Für dieses Deck sind keine Karten hinterlegt.</div>';
     host.appendChild(empty);
   }
   updateStats();
@@ -263,28 +263,6 @@ async function enrichDeckMetadata(deck){
   }
 }
 
-async function resolveDeckIfNeeded(deck){
-  if((deck.cards||[]).length || !deck.import)return deck;
-  setProgress(.03,'Deckliste wird einmalig geladen …');
-  $('renderMissing').disabled=true;$('makePdf').disabled=true;
-  try{
-    const r=await fetch(RENDER_SERVER+'/api/import-deck',{
-      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:deck.id})
-    });
-    const j=await r.json();
-    if(!r.ok)throw Error(j.error||'Deckliste konnte nicht importiert werden.');
-    const idx=library.decks.findIndex(d=>d.id===deck.id);
-    if(idx>=0)library.decks[idx]=j.deck;
-    if(j.persisted)toast('Deckliste wurde einmalig geladen und dauerhaft in decks.json gespeichert.',5200);
-    else toast('Deckliste geladen, aber noch nicht dauerhaft gespeichert.',6500);
-    return j.deck;
-  }catch(e){
-    toast(String(e.message||e),8000);
-    setProgress(0,'Decklisten-Import fehlgeschlagen');
-    return deck;
-  }
-}
-
 async function showDeck(deck){
   currentDeck=deck;loadQty(deck);
   assetState=new Map();tempSources=new Map();
@@ -296,16 +274,7 @@ async function showDeck(deck){
   savePrefs();
   $('pdfDownload').classList.remove('show');
   renderCardList();
-
-  const resolved=await resolveDeckIfNeeded(deck);
-  if(resolved!==deck){
-    currentDeck=resolved;loadQty(resolved);
-    $('deckSource').textContent=sourceText(resolved);
-    $('pickerMeta').textContent=sourceText(resolved);
-    renderCardList();
-  }
   if(!(currentDeck.cards||[]).length){updateStats();return}
-
   enrichDeckMetadata(currentDeck);
   await checkAssets();
 }
@@ -321,7 +290,7 @@ function renderDeckItems(){
     const h=document.createElement('div');h.className='deckGroupTitle';h.textContent=g;host.appendChild(h);
     for(const d of filtered.filter(x=>(x.category||'Decks')===g)){
       const b=document.createElement('button');b.className='deckItem';
-      const count=(d.cards||[]).reduce((a,c)=>a+Number(c.qty||0),0);b.innerHTML=`<b>${esc(d.name)}</b><small>${esc(sourceText(d))}${count?` · ${count} Karten`:' · Deckliste beim ersten Öffnen laden'}</small>`;
+      const count=(d.cards||[]).reduce((a,c)=>a+Number(c.qty||0),0);b.innerHTML=`<b>${esc(d.name)}</b><small>${esc(sourceText(d))} · ${count} Karten</small>`;
       b.onclick=()=>{closePicker();showDeck(d)};
       host.appendChild(b);
     }
@@ -488,9 +457,15 @@ async function checkServerHealth(){
     serverState.textContent='läuft';
     serverPill.classList.add('ok');
 
-    if(j.githubPersistence){
-      tokenState.textContent='aktiv';
+    if(j.githubStatus==='ok'){
+      tokenState.textContent='Schreibzugriff ✓';
       tokenPill.classList.add('ok');
+    }else if(j.githubStatus==='connected'){
+      tokenState.textContent='verbunden';
+      tokenPill.classList.add('warn');
+    }else if(j.githubStatus==='error'){
+      tokenState.textContent='Fehler';
+      tokenPill.classList.add('bad');
     }else{
       tokenState.textContent='fehlt';
       tokenPill.classList.add('warn');

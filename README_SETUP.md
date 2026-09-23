@@ -1,31 +1,30 @@
-# Yu-Gi-Oh! Battle Box Library v0.9
+# Yu-Gi-Oh! Battle Box Library v0.10
 
-Enthalten: **29 Deck-Einträge**
+Diese Version hat **keine Laufzeit-Deckimports mehr**.
 
-- 12 klassische Structure Decks (Dragon's Roar ist bereits aufgelöst; die übrigen werden beim ersten Öffnen einmalig importiert)
-- 3 Starter Decks (einmaliger Import)
-- 14 historische Themendecks aus GX Tag Force 2 und World Championship 2008
-- Kartenarchiv `cards/` auf GitHub
-- Render.com rendert nur fehlende Karten in ca. 450 dpi
-- PDF wird lokal im Browser erstellt
-- Vollbildansicht durch Antippen einer Karte
-- sichtbarer PDF-Öffnen/Download-Button
-- Server- und GitHub-Token-Status
-- Main-/Extra-Deck-Unterstützung
+Enthalten:
+- 12 Structure Decks
+- 3 Starter Decks
+- 23 historische Themendecks
+- insgesamt **38 Decks**
+
+Alle Kartenlisten stehen direkt in `decks.json`.
 
 ## Upload
-Diese vier Dateien im Repo-Root ersetzen:
+Im Repo-Root ersetzen:
 - `index.html`
 - `decks.json`
 - `server.mjs`
 - `package.json`
 
-Render baut danach wegen der neuen Abhängigkeit `cheerio` einmal neu.
+Render deployt danach automatisch neu.
 
-## Wichtig
-Die automatischen GitHub-Commits des Servers verwenden `[skip render]`.
-Dadurch lösen neu archivierte Karten und einmalig importierte Decklisten keinen unnötigen Render-Neustart aus.
+## Architektur
+- GitHub Pages: Deckansicht + lokales PDF
+- `decks.json`: komplette Deckbibliothek
+- `cards/`: dauerhaftes 450-dpi-Kartenarchiv
+- Render.com: rendert nur fehlende Bilder und schreibt sie nach GitHub
 
-## Persistenz
-Für dauerhafte Kartenspeicherung muss auf Render weiterhin `GITHUB_TOKEN`
-mit `Contents: Read and write` für `jonassocke-bit/Yugioh-battlebox` gesetzt sein.
+Der Server-Status prüft jetzt nicht nur, ob `GITHUB_TOKEN` gesetzt ist,
+sondern fragt GitHub ab und zeigt `Schreibzugriff ✓`, wenn die Berechtigung
+vom Repository bestätigt wird.

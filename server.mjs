@@ -3,7 +3,6 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import skia from 'skia-canvas';
-import * as cheerio from 'cheerio';
 import { YugiohCard } from 'yugioh-card';
 
 const app = express();
@@ -239,93 +238,6 @@ async function commitCardsToGithub(cardBuffers){
     return commit.sha;
   });
 }
-async function persistLibraryToGithub(){
-  if(!GITHUB_TOKEN) return null;
-  return withGithubWrite(async()=>{
-    const existing=await gh(`/contents/decks.json?ref=${encodeURIComponent(GITHUB_BRANCH)}`);
-    const content=Buffer.from(JSON.stringify(library,null,2)+'\n','utf8').toString('base64');
-    const result=await gh('/contents/decks.json',{
-      method:'PUT',
-      body:JSON.stringify({
-        message:'[skip render] Resolve deck list in library',
-        content,
-        sha:existing.sha,
-        branch:GITHUB_BRANCH
-      })
-    });
-    return result.commit?.sha||null;
-  });
-}
-
-// ---------- Fandom one-time set-list import ----------
-function headerIndex(headers,patterns){
-  return headers.findIndex(h=>patterns.some(p=>h.includes(p)));
-}
-function classifyCategory(s){
-  const t=String(s||'').toLowerCase();
-  if(t.includes('spell')||t.includes('zauber')) return 'Zauber';
-  if(t.includes('trap')||t.includes('falle')) return 'Falle';
-  return 'Monster';
-}
-async function importFandomSetList(deck){
-  const url=deck.import?.url;
-  if(!url || !/^https:\/\/yugioh\.fandom\.com\//i.test(url)) throw new Error('Ungültige Importquelle.');
-
-  const r=await fetch(url,{
-    headers:{'User-Agent':'Mozilla/5.0 YGO-BattleBox/0.9'},
-    signal:AbortSignal.timeout(35000)
-  });
-  if(!r.ok) throw new Error(`Deckliste konnte nicht geladen werden (HTTP ${r.status}).`);
-  const html=await r.text();
-  const $=cheerio.load(html);
-
-  let best=null;
-  $('table').each((_,table)=>{
-    const rows=$(table).find('tr');
-    if(!rows.length) return;
-    const headers=rows.first().find('th,td').map((__,el)=>cleanText($(el).text()).toLowerCase()).get();
-
-    const setI=headerIndex(headers,['card number','set number','kartennummer','card no']);
-    const enI=headerIndex(headers,['english name','englischer name','english']);
-    const deI=headerIndex(headers,['german name','deutscher name','german']);
-    const catI=headerIndex(headers,['category','kategorie']);
-    const qtyI=headerIndex(headers,['qty','quantity','anzahl']);
-
-    if(enI<0 || setI<0) return;
-    const score=(deI>=0?3:0)+(catI>=0?2:0)+(qtyI>=0?2:0)+rows.length/100;
-    if(!best || score>best.score) best={table,headers,setI,enI,deI,catI,qtyI,score};
-  });
-
-  if(!best) throw new Error('Auf der Quellseite wurde keine passende Kartenliste gefunden.');
-
-  const cards=[];
-  $(best.table).find('tr').slice(1).each((_,tr)=>{
-    const cells=$(tr).find('th,td');
-    if(!cells.length) return;
-    const get=i=>i>=0?cleanText($(cells.get(i)).text()):'';
-    const set=get(best.setI);
-    const en=get(best.enI);
-    const de=get(best.deI);
-    const cat=get(best.catI);
-    const qtyRaw=get(best.qtyI);
-    if(!en || !set || /card number|set number/i.test(set)) return;
-
-    const qMatch=qtyRaw.match(/\d+/);
-    const qty=qMatch?Math.max(1,Number(qMatch[0])):1;
-    cards.push({set,en,de:de||'',type:classifyCategory(cat),qty});
-  });
-
-  // Aggregate exact duplicate rows if a page lists copies separately.
-  const map=new Map();
-  for(const c of cards){
-    const k=c.set||`${c.en}|${c.type}`;
-    if(map.has(k)) map.get(k).qty+=c.qty;
-    else map.set(k,{...c});
-  }
-  const result=[...map.values()];
-  if(result.length<20) throw new Error(`Import unplausibel: nur ${result.length} verschiedene Karten gefunden.`);
-  return result;
-}
 
 // ---------- Jobs ----------
 function publicJob(job){
@@ -371,23 +283,63 @@ async function runRenderJob(job,cards){
   }
 }
 
+
+let githubHealthCache={at:0,status:'missing',writable:false,message:'Token fehlt'};
+async function githubHealth(){
+  const now=Date.now();
+  if(now-githubHealthCache.at<60000) return githubHealthCache;
+  if(!GITHUB_TOKEN){
+    githubHealthCache={at:now,status:'missing',writable:false,message:'Token fehlt'};
+    return githubHealthCache;
+  }
+  try{
+    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}`,{
+      headers:{
+        Accept:'application/vnd.github+json',
+        Authorization:`Bearer ${GITHUB_TOKEN}`,
+        'X-GitHub-Api-Version':'2022-11-28'
+      },
+      signal:AbortSignal.timeout(12000)
+    });
+    if(!r.ok) throw new Error(`GitHub HTTP ${r.status}`);
+    const j=await r.json();
+    const writable=Boolean(j.permissions?.push || j.permissions?.maintain || j.permissions?.admin);
+    githubHealthCache={
+      at:now,
+      status:writable?'ok':'connected',
+      writable,
+      message:writable?'Schreibzugriff okay':'Token gültig, Schreibrecht nicht bestätigt'
+    };
+  }catch(e){
+    githubHealthCache={at:now,status:'error',writable:false,message:String(e.message||e)};
+  }
+  return githubHealthCache;
+}
+
 // ---------- API ----------
-app.get('/',(req,res)=>{
+app.get('/',async(req,res)=>{
+  const ghState=await githubHealth();
+  const ghColor=ghState.status==='ok'?'#63d69a':(ghState.status==='error'?'#ef7373':'#eabf67');
   res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
   <body style="font-family:-apple-system;background:#0e1116;color:#fff;padding:24px">
   <h1>YGO Card Renderer</h1>
   <p>Battle-Box Render-Service · 450 dpi</p>
   <p>Server: <b style="color:#63d69a">läuft</b></p>
-  <p>GitHub-Token: <b style="color:${GITHUB_TOKEN?'#63d69a':'#eabf67'}">${GITHUB_TOKEN?'aktiv':'fehlt'}</b></p>
+  <p>GitHub: <b style="color:${ghColor}">${ghState.message}</b></p>
   <p>Deckbibliothek: <b>${library.decks?.length||0} Decks</b></p>
   </body>`);
 });
 
-app.get('/health',(req,res)=>{
+app.get('/health',async(req,res)=>{
   res.setHeader('Cache-Control','no-store');
+  const ghState=await githubHealth();
   res.json({
-    ok:true,version:'0.9-multideck-library',dpi:450,scale:RENDER_SCALE,
-    githubPersistence:Boolean(GITHUB_TOKEN),repo:GITHUB_REPO,branch:GITHUB_BRANCH,
+    ok:true,version:'0.10-hardcoded-library',dpi:450,scale:RENDER_SCALE,
+    githubPersistence:ghState.status==='ok',
+    githubStatus:ghState.status,
+    githubWritable:ghState.writable,
+    githubMessage:ghState.message,
+    repo:GITHUB_REPO,branch:GITHUB_BRANCH,
     libraryDecks:library.decks?.length||0
   });
 });
@@ -411,30 +363,6 @@ app.post('/api/metadata',async(req,res)=>{
     await Promise.all(Array.from({length:Math.min(4,cards.length||1)},worker));
     res.json({cards:results.filter(Boolean)});
   }catch(e){
-    res.status(500).json({error:String(e.message||e)});
-  }
-});
-
-app.post('/api/import-deck',async(req,res)=>{
-  try{
-    const id=String(req.body?.id||'');
-    const deck=library.decks.find(d=>d.id===id);
-    if(!deck) return res.status(404).json({error:'Deck nicht gefunden.'});
-    if(Array.isArray(deck.cards)&&deck.cards.length) return res.json({deck,persisted:true,alreadyResolved:true});
-    if(deck.import?.provider!=='fandom-set-list') return res.status(400).json({error:'Für dieses Deck gibt es keinen Import.'});
-
-    const cards=await importFandomSetList(deck);
-    deck.cards=cards;
-    deck.resolvedAt=new Date().toISOString();
-
-    let persisted=false,commitSha=null;
-    if(GITHUB_TOKEN){
-      commitSha=await persistLibraryToGithub();
-      persisted=true;
-    }
-    res.json({deck,persisted,commitSha});
-  }catch(e){
-    console.error(e);
     res.status(500).json({error:String(e.message||e)});
   }
 });
@@ -480,4 +408,4 @@ setInterval(()=>{
   for(const id of ids.slice(0,Math.max(0,ids.length-12))) jobs.delete(id);
 },10*60*1000).unref();
 
-app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.9 listening on ${PORT}`));
+app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.10 listening on ${PORT}`));

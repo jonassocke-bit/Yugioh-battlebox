@@ -26,13 +26,14 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 .bottomIn{max-width:880px;margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn{border:0;border-radius:13px;padding:13px 10px;font:inherit;font-weight:760}.pri{background:var(--gold);color:#18130a}.sec{background:var(--panel2);color:#fff;border:1px solid var(--line)}.warnBtn{background:#2b2420;color:#ffdca0;border:1px solid #5a4432}.pdfAction{grid-column:1/-1}.btn:disabled{opacity:.38}
 .sheetBg{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:40;display:none}.sheetBg.open{display:block}.sheet{position:absolute;left:0;right:0;bottom:0;max-height:82vh;background:#141922;border:1px solid var(--line);border-radius:22px 22px 0 0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));overflow:auto}.handle{width:42px;height:5px;background:#4c5563;border-radius:99px;margin:0 auto 12px}.sheetTitle{font-size:20px;font-weight:760;margin:2px 3px 10px}
 .deckGroupTitle{font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:800;margin:15px 5px 6px;text-transform:uppercase}.deckItem{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel);color:#fff;border-radius:13px;padding:11px 12px;margin:7px 0}.deckItem b{display:block;font-size:14px}.deckItem small{display:block;color:var(--muted);font-size:10px;margin-top:4px;line-height:1.35}
-.pdfDownload{display:none;grid-column:1/-1;text-decoration:none;text-align:center}.pdfDownload.show{display:block}.viewer{position:fixed;z-index:100;inset:0;background:rgba(0,0,0,.96);display:none;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));cursor:pointer}.viewer.open{display:flex}.viewer img{display:block;max-width:min(94vw,620px);max-height:90vh;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 18px 42px rgba(0,0,0,.55))}.viewerHint{position:absolute;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom));text-align:center;font-size:11px;color:#aab2bf;pointer-events:none}.thumb.hasImage{cursor:zoom-in}.toast{position:fixed;z-index:60;left:14px;right:14px;bottom:calc(88px + env(safe-area-inset-bottom));max-width:560px;margin:auto;background:#222a35;border:1px solid #3b4656;border-radius:14px;padding:12px 13px;font-size:12px;display:none;box-shadow:0 12px 35px rgba(0,0,0,.35)}.toast.show{display:block}
+.pdfDownload{display:none;grid-column:1/-1;text-decoration:none;text-align:center}.pdfDownload.show{display:block}.viewer{position:fixed;z-index:100;inset:0;background:rgba(0,0,0,.96);display:none;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));cursor:pointer}.viewer.open{display:flex}.viewer img{display:block;max-width:min(94vw,620px);max-height:90vh;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 18px 42px rgba(0,0,0,.55))}.viewerHint{position:absolute;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom));text-align:center;font-size:11px;color:#aab2bf;pointer-events:none}.thumb.hasImage{cursor:zoom-in}.archiveDanger{width:100%;margin-top:12px;padding:10px 12px;border-radius:11px;border:1px solid #633b3b;background:#26191c;color:#ff9a9a;font:inherit;font-size:12px;font-weight:760}.archiveDanger:disabled{opacity:.4}
+.toast{position:fixed;z-index:60;left:14px;right:14px;bottom:calc(88px + env(safe-area-inset-bottom));max-width:560px;margin:auto;background:#222a35;border:1px solid #3b4656;border-radius:14px;padding:12px 13px;font-size:12px;display:none;box-shadow:0 12px 35px rgba(0,0,0,.35)}.toast.show{display:block}
 @media(max-width:520px){.controls{grid-template-columns:1fr 1fr}.cardRow{grid-template-columns:51px minmax(0,1fr) auto}.thumb{width:47px;height:68px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.14</div>
+  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.16</div>
   <h1 id="deckTitle" class="title">Deck laden …</h1>
   <div id="deckSource" class="source"></div>
 
@@ -65,6 +66,8 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
       <div class="track"><i id="progressFill"></i></div>
       <div class="statusText"><span id="progressLabel">Archiv wird geprüft …</span><b id="progressPct"></b></div>
     </div>
+
+    <button id="clearArchive" class="archiveDanger">Kartenarchiv leeren</button>
   </div></div>
 
   <input id="search" placeholder="Karte suchen …">
@@ -141,6 +144,7 @@ function updateStats(){
   $('renderMissing').disabled=!missing || Boolean(activeJob) || !cards.length;
   $('renderMissing').textContent=missing?`${missing} fehlende rendern`:(cards.length?'Alles vorhanden':'Deckliste laden …');
   $('rerenderDeck').disabled=Boolean(activeJob) || !cards.length;
+  $('clearArchive').disabled=Boolean(activeJob);
   $('rerenderDeck').textContent=cards.length?`${cards.length} Karten neu rendern`:'Deck komplett neu rendern';
 }
 
@@ -421,6 +425,63 @@ function drawMarks(doc,cfg,sx,sy,cw,ch){
     doc.line(sx+cfg.cols*cw+gap,y,sx+cfg.cols*cw+gap+mark,y);
   }
 }
+
+async function clearArchive(){
+  if(activeJob){
+    toast('Während eines Render-Auftrags kann das Archiv nicht geleert werden.');
+    return;
+  }
+
+  const first=confirm(
+    'Wirklich das gesamte Kartenarchiv löschen?\n\n' +
+    'Alle PNGs unter cards/ werden aus GitHub entfernt. ' +
+    'Decklisten und die App bleiben erhalten.'
+  );
+  if(!first)return;
+
+  const second=confirm(
+    'Letzte Bestätigung:\n\n' +
+    'Danach müssen die Karten neu gerendert werden.'
+  );
+  if(!second)return;
+
+  $('clearArchive').disabled=true;
+  $('renderMissing').disabled=true;
+  $('rerenderDeck').disabled=true;
+  $('makePdf').disabled=true;
+  setProgress(.08,'Kartenarchiv wird aus GitHub gelöscht …');
+
+  try{
+    const r=await fetch(RENDER_SERVER+'/api/archive/clear',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({confirm:'DELETE CARDS'})
+    });
+    const j=await r.json();
+    if(!r.ok)throw Error(j.error||'Archiv konnte nicht gelöscht werden.');
+
+    tempSources.clear();
+    assetState.clear();
+    assetRevision.clear();
+
+    setProgress(.7, j.deleted
+      ? `${j.deleted} Karten gelöscht · GitHub Pages aktualisiert …`
+      : 'Archiv war bereits leer');
+
+    toast(j.message || 'Kartenarchiv geleert.',6500);
+
+    // GitHub Pages/CDN braucht meist etwas Zeit. Danach komplette Prüfung neu starten.
+    await new Promise(r=>setTimeout(r,3500));
+    await checkAssets();
+  }catch(e){
+    setProgress(0,'Archiv löschen fehlgeschlagen');
+    toast(String(e.message||e),8000);
+    updateStats();
+  }finally{
+    $('clearArchive').disabled=false;
+  }
+}
+
 async function makePdf(){
   const cards=currentCards();
   if(cards.some(c=>!['ok','temp'].includes(assetState.get(keyOf(c))?.state)))return toast('Es fehlen noch Kartenbilder.');
@@ -470,7 +531,7 @@ async function checkServerHealth(){
     const j=await r.json();
     if(!r.ok || !j.ok)throw Error('Server meldet Fehler');
 
-    serverState.textContent='läuft';
+    serverState.textContent=`läuft · ${j.version||'?'}`;
     serverPill.classList.add('ok');
 
     if(j.githubStatus==='ok'){
@@ -503,7 +564,7 @@ async function init(){
   $('layout').onchange=()=>{savePrefs();$('pdfDownload').classList.remove('show')};$('marks').onchange=()=>{savePrefs();$('pdfDownload').classList.remove('show')};
   $('viewer').onclick=closeViewer;
   $('deckPicker').onclick=openPicker;$('sheetBg').onclick=closePicker;$('deckSearch').oninput=renderDeckItems;
-  $('search').oninput=renderCardList;$('renderMissing').onclick=()=>startRender(false);$('rerenderDeck').onclick=()=>startRender(true);$('makePdf').onclick=makePdf;
+  $('search').oninput=renderCardList;$('renderMissing').onclick=()=>startRender(false);$('rerenderDeck').onclick=()=>startRender(true);$('clearArchive').onclick=clearArchive;$('makePdf').onclick=makePdf;
 
   try{
     const r=await fetch('decks.json',{cache:'no-store'});

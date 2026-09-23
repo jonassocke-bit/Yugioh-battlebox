@@ -72,3 +72,39 @@ mindestens diese Fälle ansehen:
 3. sehr langer Text (z. B. Infernaler Flammenherrscher)
 4. Permanent-/Konterkarte
 5. Toon/Union/Flipp/Tuner, sobald im gewählten Deck vorhanden
+
+## v0.15 – Kartenarchiv leeren
+
+Neue Funktion **Kartenarchiv leeren**:
+
+- löscht ausschließlich Dateien unter `cards/`
+- `decks.json`, App und Servercode bleiben unangetastet
+- zwei Sicherheitsabfragen im Browser
+- serverseitig zusätzlich feste Bestätigungsphrase
+- Löschung erfolgt als **ein GitHub-Commit**
+- Render-Cache wird ebenfalls geleert
+- danach prüft die Seite den Kartenstatus neu
+
+Die Funktion benötigt denselben GitHub-Token mit `Contents: Read and write`,
+der bereits für das Speichern gerenderter Karten verwendet wird.
+
+## v0.16 – Zuverlässiger Renderer-Fix
+
+Die problematischen optischen Fixes werden jetzt direkt an den gerenderten
+Kartenobjekten gesetzt und hängen nicht mehr davon ab, ob ein Patch in
+`node_modules` greift.
+
+- Monstertyp-Zeile direkt auf **80 %**
+- lange deutsche Effekte bekommen Satz-/Aufzählungsumbrüche
+- Text wird gleichmäßig verkleinert statt horizontal in eine Mini-Zeile gequetscht
+- Sicherheits-Hologramm wird explizit sichtbar gesetzt
+- deutsche Attributgrafiken werden beim Build erzeugt und direkt verwendet
+- sicherer englischer Fallback, falls ein deutsches Attributbild fehlt
+- Serverstatus zeigt die konkrete Backend-Version
+- Kartenarchiv-leeren-Funktion bleibt enthalten
+
+Vor dem kompletten Leeren des Archivs:
+1. oben muss `v0.16-reliable-render` stehen
+2. ein Deck komplett neu rendern
+3. lange Texte, Typzeile, Attribut und Hologramm kontrollieren
+4. erst dann Kartenarchiv leeren

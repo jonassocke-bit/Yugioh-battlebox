@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import fsSync from 'node:fs';
 import crypto from 'node:crypto';
 import skia from 'skia-canvas';
 import { YugiohCard } from 'yugioh-card';
@@ -206,13 +207,119 @@ function rendererData(card,en,de,artwork){
   };
 }
 
-function germanAttributeUrl(instance,en){
+function germanAttributeUrl(en){
   const base=`${ASSET_ROOT}/yugioh/image`;
   const type=mainType(en);
-  if(type==='spell') return `${base}/attribute-spell-de.png`;
-  if(type==='trap') return `${base}/attribute-trap-de.png`;
-  const attr=String(en.attribute||'').toLowerCase();
-  return attr ? `${base}/attribute-${attr}-de.png` : '';
+  let key='';
+  if(type==='spell') key='spell';
+  else if(type==='trap') key='trap';
+  else key=String(en.attribute||'').toLowerCase();
+
+  if(!key) return '';
+
+  const german=`${base}/attribute-${key}-de.png`;
+  if(fsSync.existsSync(german)) return german;
+
+  return `${base}/attribute-${key}-en.png`;
+}
+
+function formatGermanDescription(desc,en){
+  let text=String(desc||'')
+    .replace(/\r\n?/g,'\n')
+    .replace(/[ \t]+\n/g,'\n')
+    .replace(/\n[ \t]+/g,'\n')
+    .trim();
+
+  text=text.replace(/\s*●\s*/g,'\n●').replace(/^\n/,'');
+
+  const isNormal=(en.type||'').includes('Normal Monster');
+  if(!isNormal && text.length>=155){
+    const paragraphs=text.split('\n').flatMap(part=>{
+      if(part.length<135) return [part];
+      const sentences=part.split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ0-9„"'])/u).filter(Boolean);
+      return sentences.length>1 ? sentences : [part];
+    });
+    text=paragraphs.join('\n');
+  }
+
+  return text;
+}
+
+function applyReliableCardPolish(instance,en,de){
+  const type=mainType(en);
+  const style=instance.style;
+
+  const attrUrl=germanAttributeUrl(en);
+  if(attrUrl && instance.attributeLeaf){
+    instance.attributeLeaf.set({
+      url:attrUrl,
+      x:1163,
+      y:96,
+      visible:true,
+      zIndex:40
+    });
+  }
+
+  instance.data.laser='laser1';
+  instance.drawLaser();
+  if(instance.laserLeaf){
+    instance.laserLeaf.set({
+      url:`${ASSET_ROOT}/yugioh/image/laser1.png`,
+      x:1276,
+      y:1913,
+      visible:true,
+      zIndex:250
+    });
+  }
+
+  let effectHeight=0;
+  if(type==='monster' && instance.effectLeaf){
+    const typeFontSize=style.effect.fontSize*0.80;
+    effectHeight=typeFontSize*(style.effect.lineHeight||1);
+    instance.effectLeaf.set({
+      fontSize:typeFontSize,
+      lineHeight:style.effect.lineHeight
+    });
+  }
+
+  if(instance.descriptionLeaf){
+    const desc=formatGermanDescription(de.desc||en.desc||'',en);
+    const hasEffectLine=type==='monster' && Boolean(instance.data.monsterType);
+    if(type==='monster' && !effectHeight && hasEffectLine){
+      effectHeight=style.effect.fontSize*0.80*(style.effect.lineHeight||1);
+    }
+
+    let height=385;
+    if(!['spell','trap'].includes(type)){
+      if(hasEffectLine) height-=effectHeight;
+      if(instance.data.atkBar) height-=60;
+    }
+    const y=style.effect.top+(hasEffectLine?effectHeight:0);
+
+    const base={
+      text:desc,
+      firstLineCompress:false,
+      autoSmallSize:false,
+      fontSize:style.description.fontSize,
+      lineHeight:style.description.lineHeight,
+      width:1175,
+      height,
+      x:109,
+      y
+    };
+
+    let chosen=1;
+    for(let scale=1;scale>=0.74;scale-=0.03){
+      instance.descriptionLeaf.set({...base,fontScale:Number(scale.toFixed(2))});
+      const horizontal=Number(instance.descriptionLeaf.textScale||1);
+      chosen=scale;
+      if(horizontal>=0.97) break;
+    }
+
+    if(Number(instance.descriptionLeaf.textScale||1)<0.78){
+      instance.descriptionLeaf.set({...base,fontScale:Math.max(0.70,chosen-0.04)});
+    }
+  }
 }
 
 function pngFromExport(data){
@@ -230,14 +337,6 @@ async function renderCard(card,force=false){
   const art=await artworkDataUrl(en);
   const instance=new YugiohCard({data:rendererData(card,en,de,art),resourcePath:ASSET_ROOT,skia});
 
-  // Der Renderer besitzt keine deutsche Sprachvariante für Attribut-Symbole.
-  // Wir erzeugen beim Build deutsche Varianten und überschreiben nur deren URL.
-  Object.defineProperty(instance,'attributeUrl',{
-    configurable:true,
-    get(){ return germanAttributeUrl(instance,en); }
-  });
-  instance.drawAttribute();
-
   if(mainType(en)==='spell'||mainType(en)==='trap'){
     Object.defineProperty(instance,'spellTrapName',{
       configurable:true,
@@ -245,6 +344,8 @@ async function renderCard(card,force=false){
     });
     instance.drawSpellTrap();
   }
+
+  applyReliableCardPolish(instance,en,de);
 
   try{
     const out=await instance.leafer.export('png',{screenshot:true});
@@ -313,6 +414,62 @@ async function commitCardsToGithub(cardBuffers){
       method:'PATCH',body:JSON.stringify({sha:commit.sha,force:false})
     });
     return commit.sha;
+  });
+}
+
+
+async function clearCardArchive(){
+  if(!GITHUB_TOKEN) throw new Error('GITHUB_TOKEN fehlt auf Render.');
+
+  return withGithubWrite(async()=>{
+    const ref=await gh(`/git/ref/heads/${encodeURIComponent(GITHUB_BRANCH)}`);
+    const parentSha=ref.object.sha;
+    const parentCommit=await gh(`/git/commits/${parentSha}`);
+
+    const tree=await gh(`/git/trees/${parentCommit.tree.sha}?recursive=1`);
+    const cardFiles=(tree.tree||[]).filter(x=>
+      x.type==='blob' &&
+      typeof x.path==='string' &&
+      x.path.startsWith('cards/')
+    );
+
+    if(!cardFiles.length){
+      return {deleted:0,commitSha:null};
+    }
+
+    const deleteEntries=cardFiles.map(x=>({
+      path:x.path,
+      mode:'100644',
+      type:'blob',
+      sha:null
+    }));
+
+    const newTree=await gh('/git/trees',{
+      method:'POST',
+      body:JSON.stringify({
+        base_tree:parentCommit.tree.sha,
+        tree:deleteEntries
+      })
+    });
+
+    const commit=await gh('/git/commits',{
+      method:'POST',
+      body:JSON.stringify({
+        message:`[skip render] Clear rendered card archive (${cardFiles.length} files)`,
+        tree:newTree.sha,
+        parents:[parentSha]
+      })
+    });
+
+    await gh(`/git/refs/heads/${encodeURIComponent(GITHUB_BRANCH)}`,{
+      method:'PATCH',
+      body:JSON.stringify({sha:commit.sha,force:false})
+    });
+
+    renderCache.clear();
+    artworkCache.clear();
+
+    return {deleted:cardFiles.length,commitSha:commit.sha};
   });
 }
 
@@ -400,7 +557,7 @@ app.get('/',async(req,res)=>{
   res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
   <body style="font-family:-apple-system;background:#0e1116;color:#fff;padding:24px">
   <h1>YGO Card Renderer</h1>
-  <p>Battle-Box Render-Service · 450 dpi · Final-Polish-Test</p>
+  <p>Battle-Box Render-Service · 450 dpi · Renderer v0.16</p>
   <p>Server: <b style="color:#63d69a">läuft</b></p>
   <p>GitHub: <b style="color:${ghColor}">${ghState.message}</b></p>
   <p>Deckbibliothek: <b>${library.decks?.length||0} Decks</b></p>
@@ -411,13 +568,17 @@ app.get('/health',async(req,res)=>{
   res.setHeader('Cache-Control','no-store');
   const ghState=await githubHealth();
   res.json({
-    ok:true,version:'0.14-final-polish',dpi:450,scale:RENDER_SCALE,
+    ok:true,version:'0.16-reliable-render',dpi:450,scale:RENDER_SCALE,
     githubPersistence:ghState.status==='ok',
     githubStatus:ghState.status,
     githubWritable:ghState.writable,
     githubMessage:ghState.message,
     repo:GITHUB_REPO,branch:GITHUB_BRANCH,
-    libraryDecks:library.decks?.length||0
+    libraryDecks:library.decks?.length||0,
+    typeLineScale:0.80,
+    forcedHologram:true,
+    germanAttributesAvailable:fsSync.existsSync(`${ASSET_ROOT}/yugioh/image/attribute-fire-de.png`),
+    descriptionFit:'uniform-scale-v2'
   });
 });
 
@@ -440,6 +601,35 @@ app.post('/api/metadata',async(req,res)=>{
     await Promise.all(Array.from({length:Math.min(4,cards.length||1)},worker));
     res.json({cards:results.filter(Boolean)});
   }catch(e){
+    res.status(500).json({error:String(e.message||e)});
+  }
+});
+
+
+app.post('/api/archive/clear',async(req,res)=>{
+  try{
+    const confirmText=String(req.body?.confirm||'');
+    if(confirmText!=='DELETE CARDS'){
+      return res.status(400).json({error:'Bestätigung fehlt.'});
+    }
+
+    const ghState=await githubHealth();
+    if(ghState.status!=='ok'){
+      return res.status(503).json({error:'GitHub-Schreibzugriff ist nicht aktiv.'});
+    }
+
+    const result=await clearCardArchive();
+    githubHealthCache.at=0;
+    res.json({
+      ok:true,
+      deleted:result.deleted,
+      commitSha:result.commitSha,
+      message:result.deleted
+        ? `${result.deleted} Kartenbilder aus dem GitHub-Archiv gelöscht.`
+        : 'Das Kartenarchiv war bereits leer.'
+    });
+  }catch(e){
+    console.error(e);
     res.status(500).json({error:String(e.message||e)});
   }
 });
@@ -486,4 +676,4 @@ setInterval(()=>{
   for(const id of ids.slice(0,Math.max(0,ids.length-12))) jobs.delete(id);
 },10*60*1000).unref();
 
-app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.14 listening on ${PORT}`));
+app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.16 listening on ${PORT}`));

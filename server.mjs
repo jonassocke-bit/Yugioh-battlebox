@@ -1,7 +1,5 @@
 import express from 'express';
 import path from 'node:path';
-import fs from 'node:fs/promises';
-import os from 'node:os';
 import skia from 'skia-canvas';
 import { PDFDocument } from 'pdf-lib';
 import { YugiohCard } from 'yugioh-card';
@@ -10,6 +8,11 @@ const app = express();
 const PORT = Number(process.env.PORT || 10000);
 const ASSET_ROOT = path.resolve('renderer-assets/yugioh-card');
 const MM = 72 / 25.4;
+
+// Zielauflösung etwas reduziert für schnelleren Render:
+// 59 × 86 mm bei ca. 450 dpi ≈ 1046 × 1524 px
+const TARGET_W = 1046;
+const TARGET_H = 1524;
 
 const TEST_CARDS = [
   { en: 'Red-Eyes Darkness Dragon', de: 'Rotäugiger Finsterer Drache', set: 'SD1-DE001' },
@@ -20,6 +23,34 @@ const TEST_CARDS = [
 const metaCache = new Map();
 const artworkCache = new Map();
 const renderCache = new Map();
+
+const RACE_DE = {
+  'Aqua': 'AQUA',
+  'Beast': 'UNGEHEUER',
+  'Beast-Warrior': 'UNGEHEUER-KRIEGER',
+  'Cyberse': 'CYBERSE',
+  'Dinosaur': 'DINOSAURIER',
+  'Divine-Beast': 'GÖTTLICHES UNGEHEUER',
+  'Dragon': 'DRACHE',
+  'Fairy': 'FEE',
+  'Fiend': 'UNTERWELTLER',
+  'Fish': 'FISCH',
+  'Illusion': 'ILLUSION',
+  'Insect': 'INSEKT',
+  'Machine': 'MASCHINE',
+  'Plant': 'PFLANZE',
+  'Psychic': 'PSI',
+  'Pyro': 'PYRO',
+  'Reptile': 'REPTIL',
+  'Rock': 'FELS',
+  'Sea Serpent': 'SEESCHLANGE',
+  'Spellcaster': 'HEXER',
+  'Thunder': 'DONNER',
+  'Warrior': 'KRIEGER',
+  'Winged Beast': 'GEFLÜGELTES UNGEHEUER',
+  'Wyrm': 'WYRM',
+  'Zombie': 'ZOMBIE',
+};
 
 function esc(s='') {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -33,30 +64,37 @@ async function fetchJSON(url) {
 
 async function getCard(card) {
   if (metaCache.has(card.en)) return metaCache.get(card.en);
+
   const enJSON = await fetchJSON(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${encodeURIComponent(card.en)}`);
   const en = enJSON.data?.[0];
   if (!en) throw new Error(`Karte nicht gefunden: ${card.en}`);
+
   let de = null;
   try {
     const deJSON = await fetchJSON(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${en.id}&language=de`);
     de = deJSON.data?.[0] || null;
   } catch {}
+
   const result = { en, de: de || en };
   metaCache.set(card.en, result);
   return result;
 }
 
-async function ensureArtwork(en) {
+async function getArtworkDataUrl(en) {
   if (artworkCache.has(en.id)) return artworkCache.get(en.id);
+
   const url = en.card_images?.[0]?.image_url_cropped || en.card_images?.[0]?.image_url;
   if (!url) throw new Error(`Kein Artwork für ${en.name}`);
+
   const r = await fetch(url, { signal: AbortSignal.timeout(30000) });
   if (!r.ok) throw new Error(`Artwork HTTP ${r.status}`);
-  const ext = (r.headers.get('content-type') || '').includes('png') ? 'png' : 'jpg';
-  const file = path.join(os.tmpdir(), `ygo-art-${en.id}.${ext}`);
-  await fs.writeFile(file, Buffer.from(await r.arrayBuffer()));
-  artworkCache.set(en.id, file);
-  return file;
+
+  const contentType = r.headers.get('content-type') || 'image/jpeg';
+  const bytes = Buffer.from(await r.arrayBuffer());
+  const dataUrl = `data:${contentType};base64,${bytes.toString('base64')}`;
+
+  artworkCache.set(en.id, dataUrl);
+  return dataUrl;
 }
 
 const iconMap = {
@@ -82,18 +120,22 @@ function cardType(en) {
     : ((en.type || '').includes('Normal Monster') ? 'normal' : 'effect');
 }
 
-function monsterType(de, en) {
-  const race = de.race || en.race || 'Monster';
+function germanMonsterType(en) {
+  const race = RACE_DE[en.race] || String(en.race || 'MONSTER').toUpperCase();
   const t = en.type || '';
+
   let kind = 'EFFEKT';
   if (t.includes('Normal Monster')) kind = 'NORMAL';
   else if (t.includes('Ritual')) kind = 'RITUAL / EFFEKT';
   else if (t.includes('Fusion')) kind = 'FUSION / EFFEKT';
   else if (t.includes('Synchro')) kind = 'SYNCHRO / EFFEKT';
-  return `${String(race).toUpperCase()} / ${kind}`;
+  else if (t.includes('Xyz')) kind = 'XYZ / EFFEKT';
+  else if (t.includes('Link')) kind = 'LINK / EFFEKT';
+
+  return `${race} / ${kind}`;
 }
 
-function rendererData(card, en, de, artworkPath) {
+function rendererData(card, en, de, artwork) {
   const type = mainType(en);
   return {
     language: 'en',
@@ -105,14 +147,14 @@ function rendererData(card, en, de, artworkPath) {
     type,
     attribute: (en.attribute || '').toLowerCase(),
     icon: iconMap[en.race] || '',
-    image: artworkPath,
+    image: artwork,
     cardType: cardType(en),
     pendulumType: 'normal-pendulum',
     level: en.level || 0,
     rank: en.level || 0,
     pendulumScale: 0,
     pendulumDescription: '',
-    monsterType: type === 'monster' ? monsterType(de, en) : '',
+    monsterType: type === 'monster' ? germanMonsterType(en) : '',
     atkBar: true,
     atk: Number.isFinite(en.atk) ? en.atk : 0,
     def: Number.isFinite(en.def) ? en.def : 0,
@@ -141,13 +183,22 @@ function dataUrlToBuffer(data) {
   return Buffer.from(m[1], 'base64');
 }
 
+async function downscalePng(pngBuffer, width = TARGET_W, height = TARGET_H) {
+  const img = await skia.loadImage(pngBuffer);
+  const canvas = new skia.Canvas(width, height);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, width, height);
+  return await canvas.toBuffer('png');
+}
+
 async function renderCard(card) {
   if (renderCache.has(card.en)) return renderCache.get(card.en);
+
   const { en, de } = await getCard(card);
-  const art = await ensureArtwork(en);
+  const artwork = await getArtworkDataUrl(en);
 
   const instance = new YugiohCard({
-    data: rendererData(card, en, de, art),
+    data: rendererData(card, en, de, artwork),
     resourcePath: ASSET_ROOT,
     skia
   });
@@ -155,15 +206,22 @@ async function renderCard(card) {
   if (mainType(en) === 'spell' || mainType(en) === 'trap') {
     Object.defineProperty(instance, 'spellTrapName', {
       configurable: true,
-      get() { return mainType(en) === 'spell' ? 'Zauberkarte' : 'Fallenkarte'; }
+      get() {
+        return mainType(en) === 'spell' ? 'Zauberkarte' : 'Fallenkarte';
+      }
     });
     instance.drawSpellTrap();
   }
 
   try {
     const result = await instance.leafer.export('png', { screenshot: true });
-    if (!result || result.error) throw new Error(result?.error?.message || 'Renderer-Export fehlgeschlagen');
-    const png = dataUrlToBuffer(result.data);
+
+    if (!result || result.error) {
+      throw new Error(result?.error?.message || 'Renderer-Export fehlgeschlagen');
+    }
+
+    const rawPng = dataUrlToBuffer(result.data);
+    const png = await downscalePng(rawPng);
     renderCache.set(card.en, png);
     return png;
   } finally {
@@ -175,22 +233,28 @@ async function fetchFullScan(card) {
   const { en } = await getCard(card);
   const url = en.card_images?.[0]?.image_url;
   if (!url) throw new Error(`Kein Komplettbild für ${card.en}`);
+
   const r = await fetch(url, { signal: AbortSignal.timeout(30000) });
   if (!r.ok) throw new Error(`Scan HTTP ${r.status}`);
+
   return Buffer.from(await r.arrayBuffer());
 }
 
 async function makeThreeCardPdf(mode='render') {
   const pdf = await PDFDocument.create();
-  const page = pdf.addPage([420*MM, 297*MM]); // A3 landscape
-  const cw = 59*MM, ch = 86*MM;
+  const page = pdf.addPage([420*MM, 297*MM]);
+
+  const cw = 59*MM;
+  const ch = 86*MM;
   const gap = 5*MM;
   const totalW = 3*cw + 2*gap;
-  let x = (420*MM - totalW)/2;
-  const y = (297*MM - ch)/2;
+
+  let x = (420*MM - totalW) / 2;
+  const y = (297*MM - ch) / 2;
 
   for (const card of TEST_CARDS) {
     const bytes = mode === 'scan' ? await fetchFullScan(card) : await renderCard(card);
+
     let img;
     if (mode === 'scan') {
       try { img = await pdf.embedJpg(bytes); }
@@ -198,33 +262,63 @@ async function makeThreeCardPdf(mode='render') {
     } else {
       img = await pdf.embedPng(bytes);
     }
+
     page.drawImage(img, { x, y, width: cw, height: ch });
     x += cw + gap;
   }
+
   return Buffer.from(await pdf.save());
 }
 
 function shell(title, body) {
-  return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0e1116"><title>${esc(title)}</title><style>
-  :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0e1116;color:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Arial,sans-serif}.wrap{max-width:720px;margin:auto;padding:calc(22px + env(safe-area-inset-top)) 16px calc(30px + env(safe-area-inset-bottom))}h1{font-size:31px;margin:6px 0 8px}.sub{color:#a7b0bf;line-height:1.5}.card{margin-top:18px;background:#171c24;border:1px solid #313a49;border-radius:18px;padding:16px}.btn{display:block;width:100%;text-align:center;text-decoration:none;padding:15px;border-radius:14px;margin:10px 0;background:#202733;border:1px solid #394353;color:#fff;font-weight:700}.primary{background:#e8c56a;color:#18130a;border:0}.ok{color:#63d69a}.small{font-size:12px;color:#9da8b8;line-height:1.45}</style></head><body><div class="wrap">${body}</div></body></html>`;
+  return `<!doctype html>
+  <html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#0e1116">
+    <title>${esc(title)}</title>
+    <style>
+      :root{color-scheme:dark}
+      *{box-sizing:border-box}
+      body{margin:0;background:#0e1116;color:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Arial,sans-serif}
+      .wrap{max-width:720px;margin:auto;padding:calc(22px + env(safe-area-inset-top)) 16px calc(30px + env(safe-area-inset-bottom))}
+      h1{font-size:31px;margin:6px 0 8px}
+      .sub{color:#a7b0bf;line-height:1.5}
+      .card{margin-top:18px;background:#171c24;border:1px solid #313a49;border-radius:18px;padding:16px}
+      .btn{display:block;width:100%;text-align:center;text-decoration:none;padding:15px;border-radius:14px;margin:10px 0;background:#202733;border:1px solid #394353;color:#fff;font-weight:700}
+      .primary{background:#e8c56a;color:#18130a;border:0}
+      .ok{color:#63d69a}
+      .small{font-size:12px;color:#9da8b8;line-height:1.45}
+    </style>
+  </head>
+  <body><div class="wrap">${body}</div></body>
+  </html>`;
 }
 
 app.get('/', (req,res) => {
   res.type('html').send(shell('YGO Render Test', `
-    <div class="sub">CLASSIC BATTLE BOX · SERVER-TEST</div>
+    <div class="sub">CLASSIC BATTLE BOX · SERVER-TEST V0.3</div>
     <h1>Dragon's Roar</h1>
-    <div class="sub">Das iPhone ist nur noch die Oberfläche. Bilder, Renderer und PDF laufen auf diesem Server.</div>
+    <div class="sub">Artwork serverseitig eingebettet, Monstertypen deutsch übersetzt und Rendergröße für schnellere Tests auf ca. <b>450 dpi</b> reduziert.</div>
     <div class="card">
       <div class="ok"><b>Server läuft.</b></div>
       <a class="btn primary" href="/test-card">1. Testkarte rendern</a>
       <a class="btn" href="/test-pdf?mode=render">2. 3-Karten Render-PDF</a>
       <a class="btn" href="/test-pdf?mode=scan">3. 3-Karten Scan-PDF</a>
-      <div class="small">Teste zuerst nur die einzelne Karte. Wenn die korrekt aussieht, gehen wir erst an das komplette 40-Karten-Deck.</div>
+      <div class="small">Bei der Testkarte müssen jetzt Artwork und „DRACHE / EFFEKT“ sichtbar sein.</div>
     </div>
   `));
 });
 
-app.get('/health', (req,res) => res.json({ok:true,node:process.version,assets:ASSET_ROOT}));
+app.get('/health', (req,res) => res.json({
+  ok: true,
+  version: '0.3-downscaled-450dpi',
+  node: process.version,
+  assets: ASSET_ROOT,
+  targetWidth: TARGET_W,
+  targetHeight: TARGET_H
+}));
 
 app.get('/test-card', async (req,res) => {
   try {
@@ -234,7 +328,9 @@ app.get('/test-card', async (req,res) => {
     res.send(png);
   } catch (e) {
     console.error(e);
-    res.status(500).type('html').send(shell('Renderfehler', `<h1>Renderfehler</h1><div class="card"><div style="color:#ef7373">${esc(e.stack || e.message || e)}</div></div>`));
+    res.status(500).type('html').send(shell('Renderfehler',
+      `<h1>Renderfehler</h1><div class="card"><div style="color:#ef7373">${esc(e.stack || e.message || e)}</div></div>`
+    ));
   }
 });
 
@@ -242,15 +338,18 @@ app.get('/test-pdf', async (req,res) => {
   try {
     const mode = req.query.mode === 'scan' ? 'scan' : 'render';
     const pdf = await makeThreeCardPdf(mode);
+
     res.setHeader('Content-Type','application/pdf');
     res.setHeader('Content-Disposition',`inline; filename="YGO_${mode}_test.pdf"`);
     res.send(pdf);
   } catch (e) {
     console.error(e);
-    res.status(500).type('html').send(shell('PDF-Fehler', `<h1>PDF-Fehler</h1><div class="card"><div style="color:#ef7373">${esc(e.stack || e.message || e)}</div></div>`));
+    res.status(500).type('html').send(shell('PDF-Fehler',
+      `<h1>PDF-Fehler</h1><div class="card"><div style="color:#ef7373">${esc(e.stack || e.message || e)}</div></div>`
+    ));
   }
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`YGO render test listening on ${PORT}`);
+  console.log(`YGO render test v0.3 listening on ${PORT}`);
 });

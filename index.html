@@ -3,297 +3,170 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0e1116">
+<meta name="theme-color" content="#0f1217">
 <title>YGO Battle Box Print</title>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
-:root{--bg:#0e1116;--p:#171c24;--p2:#202733;--l:#313a49;--t:#f4f6f8;--m:#9da8b8;--a:#e8c56a;--ok:#63d69a;--w:#f0b45c}
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Arial,sans-serif}
-.app{max-width:860px;margin:auto;padding:calc(env(safe-area-inset-top) + 16px) 14px calc(112px + env(safe-area-inset-bottom))}
-.sub,.note,.meta{color:var(--m)} .sub{font-size:13px} h1{font-size:28px;margin:4px 0}
-.bar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0} .pill{border:1px solid var(--l);background:var(--p);border-radius:999px;padding:7px 10px;font-size:12px}
-.box{background:var(--p);border:1px solid var(--l);border-radius:16px;margin:12px 0;overflow:hidden} .controls{padding:14px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px} label{display:block;color:var(--m);font-size:11px;margin-bottom:5px}
-select,input{width:100%;background:var(--p2);border:1px solid var(--l);border-radius:11px;color:white;padding:11px}
-.row{display:grid;grid-template-columns:45px 1fr auto;gap:10px;align-items:center;padding:9px 11px;border-top:1px solid var(--l)}
-.thumb{width:42px;height:61px;border:1px solid var(--l);border-radius:5px;background:#090c10 center/cover no-repeat;position:relative}
-.dot{position:absolute;right:3px;bottom:3px;width:9px;height:9px;border-radius:50%;background:#56606f}
-.name{font-weight:650;font-size:14px} .meta{font-size:11px;margin-top:3px}
-.step{display:flex;align-items:center;gap:5px} .step button{width:31px;height:31px;border:1px solid var(--l);border-radius:9px;background:var(--p2);color:#fff;font-size:19px}
-.n{width:20px;text-align:center;font-weight:700} .section{padding:11px 13px;font-weight:700;background:rgba(255,255,255,.025)}
-.actions{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(14,17,22,.94);backdrop-filter:blur(18px);border-top:1px solid var(--l)}
-.actions>div{max-width:860px;margin:auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.btn{border:0;border-radius:13px;padding:13px;font-weight:750} .pri{background:var(--a);color:#18130a} .sec{background:var(--p2);color:#fff;border:1px solid var(--l)}
-.note{font-size:12px;line-height:1.45;margin-top:10px} .progress{height:5px;background:#2a303a;border-radius:6px;overflow:hidden;margin-top:10px} .progress i{display:block;height:100%;width:0;background:var(--a)} .hidden{display:none} .ok{color:var(--ok)} .warn{color:var(--w)}
-dialog{background:var(--p);color:#fff;border:1px solid var(--l);border-radius:16px;width:calc(100% - 28px);max-width:420px;padding:18px} dialog::backdrop{background:rgba(0,0,0,.65)} dialog button{width:100%;margin-top:12px}
-@media(max-width:640px){.actions>div{grid-template-columns:1fr 1fr} .btn.wide{grid-column:1 / -1} }
+:root{--bg:#0f1217;--panel:#171c24;--panel2:#202733;--line:#313a49;--text:#f4f6f8;--muted:#9da8b8;--accent:#e8c56a;--ok:#63d69a;--warn:#f0b45c;--bad:#ef7373}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Arial,sans-serif}
+.app{max-width:900px;margin:auto;padding:calc(16px + env(safe-area-inset-top)) 14px calc(126px + env(safe-area-inset-bottom))}
+.kicker{font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:.12em;font-weight:700}h1{margin:6px 0 4px;font-size:29px;line-height:1.05}.sub{color:var(--muted);font-size:13px}
+.status{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}.pill{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted)}.pill b{color:#fff}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:12px 0}.head{padding:12px 14px;background:rgba(255,255,255,.025);font-weight:700}
+.controls{padding:14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px} label{display:block;color:var(--muted);font-size:11px;margin-bottom:5px} select,input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:11px;color:#fff;padding:11px;font:inherit}
+.note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px} .note strong{color:#fff}
+.row{display:grid;grid-template-columns:45px 1fr auto;gap:10px;align-items:center;padding:9px 11px;border-top:1px solid var(--line)}
+.thumb{width:42px;height:61px;border-radius:5px;border:1px solid #404a5b;background:#0a0d11 center/cover no-repeat;position:relative}.dot{position:absolute;right:3px;bottom:3px;width:9px;height:9px;border-radius:50%;background:#596273}
+.name{font-weight:650;font-size:14px;line-height:1.2}.meta{font-size:11px;color:var(--muted);margin-top:3px}.step{display:flex;align-items:center;gap:5px}.step button{width:31px;height:31px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:#fff;font-size:19px}.count{width:21px;text-align:center;font-weight:700}
+.actions{position:fixed;left:0;right:0;bottom:0;background:rgba(15,18,23,.94);backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom))}.actionsIn{max-width:900px;margin:auto;display:grid;grid-template-columns:1fr 1fr 1fr 1.2fr;gap:8px}
+.btn{border:0;border-radius:13px;padding:13px 12px;font-weight:750;font:inherit}.pri{background:var(--accent);color:#18130a}.sec{background:var(--panel2);color:#fff;border:1px solid var(--line)}
+.progress{height:5px;background:#2a303a;border-radius:10px;overflow:hidden;margin-top:10px}.progress i{display:block;height:100%;background:var(--accent);width:0}.hidden{display:none!important} .ok{color:var(--ok)}.warn{color:var(--warn)} .bad{color:var(--bad)}
+dialog{background:var(--panel);color:#fff;border:1px solid var(--line);border-radius:18px;max-width:440px;width:calc(100% - 28px);padding:18px}dialog::backdrop{background:rgba(0,0,0,.65)}dialog button{margin-top:12px;width:100%}
+@media(max-width:680px){.actionsIn{grid-template-columns:1fr 1fr} .wide{grid-column:1 / -1} }
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="sub">CLASSIC BATTLE BOX · V1.1</div>
+  <div class="kicker">Classic Battle Box · V1.2</div>
   <h1>Dragon's Roar</h1>
-  <div class="sub">SD1 · 2005 · zwei Ausgaben: <b>Max Scan</b> und <b>Render-Proxy</b> · 59 × 86 mm</div>
-  <div class="bar">
+  <div class="sub">Nur <strong>eine</strong> Quelle: <strong>YGOPRODeck</strong>. Ausgabe A = <strong>Best Scan</strong> (beste komplette Karte aus YGOPRODeck). Ausgabe B = <strong>German Render</strong> (deutsche Proxy auf Basis derselben Karte).</div>
+  <div class="status">
     <div class="pill">Deck: <b id="total">40</b></div>
-    <div class="pill">Scans geladen: <b id="loaded">0/28</b></div>
-    <div class="pill">Render möglich: <b id="metaCount">0/28</b></div>
+    <div class="pill">Scans: <b id="scanCount">0/28</b></div>
+    <div class="pill">DE-Metadaten: <b id="metaCount">0/28</b></div>
     <div class="pill">Seiten: <b id="pages">3</b></div>
   </div>
-
   <div class="box controls">
     <div class="grid">
       <div><label>Format</label><select id="layout"><option value="a3safe">A3 sicher · 18/Bogen</option><option value="a3tight">A3 maximal · 21/Bogen</option><option value="sra3">SRA3 · 25/Bogen</option></select></div>
       <div><label>Schnittmarken</label><select id="marks"><option value="1">An</option><option value="0">Aus</option></select></div>
     </div>
-    <div class="note"><b>Scan-PDF</b> nutzt den besten geladenen Komplettscan. <b>Render-PDF</b> rendert scharfe Proxy-Karten mit Text/Rahmen neu und nutzt das Artwork aus dem Scan als Bildausschnitt.</div>
+    <div class="note">Der <strong>German-Render</strong> verwendet jetzt die echte englische YGOPRODeck-Karte als Basis und ersetzt nur die relevanten Textbereiche sauber durch deutsche Inhalte. Dadurch bleibt der Yu-Gi-Oh!-Rahmen echt und der Render wirkt deutlich näher am Original als der vorige Eigenbau.</div>
     <div id="prog" class="progress hidden"><i></i></div>
     <div id="progText" class="note hidden"></div>
   </div>
-
   <input id="search" placeholder="Karte suchen …">
-  <div id="list"></div>
+  <div id="cards"></div>
 </div>
-
-<div class="actions"><div>
-  <button class="btn sec" id="images">Quellen laden</button>
-  <button class="btn sec" id="scanPdf">Scan-PDF</button>
-  <button class="btn sec" id="renderPdf">Render-PDF</button>
-  <button class="btn pri wide" id="bothPdf">Beide PDFs</button>
+<div class="actions"><div class="actionsIn">
+  <button id="loadBtn" class="btn sec">Quelle laden</button>
+  <button id="scanBtn" class="btn sec">Best-Scan-PDF</button>
+  <button id="renderBtn" class="btn sec">German-Render-PDF</button>
+  <button id="bothBtn" class="btn pri wide">Beide PDFs</button>
 </div></div>
-
-<dialog id="msg"><div id="msgText"></div><button class="btn pri" id="closeMsg">OK</button></dialog>
-
+<dialog id="msg"><div id="msgText"></div><button class="btn pri" onclick="document.getElementById('msg').close()">OK</button></dialog>
 <script>
-const cards = [{"set": "SD1-DE001", "en": "Red-Eyes Darkness Dragon", "de": "Rotäugiger Finsterer Drache", "type": "Monster", "qty": 1}, {"set": "SD1-DE002", "en": "Red-Eyes Black Dragon", "de": "Rotäugiger schwarzer Drache", "type": "Monster", "qty": 1}, {"set": "SD1-DE003", "en": "Luster Dragon", "de": "Schimmerdrache", "type": "Monster", "qty": 2}, {"set": "SD1-DE004", "en": "Twin-Headed Behemoth", "de": "Zweiköpfiger Behemoth", "type": "Monster", "qty": 1}, {"set": "SD1-DE005", "en": "Armed Dragon LV3", "de": "Bewaffneter Drache LV3", "type": "Monster", "qty": 2}, {"set": "SD1-DE006", "en": "Armed Dragon LV5", "de": "Bewaffneter Drache LV5", "type": "Monster", "qty": 2}, {"set": "SD1-DE007", "en": "Black Dragon's Chick", "de": "Schwarzes Drachenküken", "type": "Monster", "qty": 1}, {"set": "SD1-DE008", "en": "Element Dragon", "de": "Elementardrache", "type": "Monster", "qty": 1}, {"set": "SD1-DE009", "en": "Masked Dragon", "de": "Maskierter Drache", "type": "Monster", "qty": 3}, {"set": "SD1-DE010", "en": "Snatch Steal", "de": "Schnappstahl", "type": "Zauber", "qty": 1}, {"set": "SD1-DE011", "en": "Mystical Space Typhoon", "de": "Mystischer Raum-Taifun", "type": "Zauber", "qty": 1}, {"set": "SD1-DE012", "en": "Nobleman of Crossout", "de": "Adliger der Auslöschung", "type": "Zauber", "qty": 2}, {"set": "SD1-DE013", "en": "Premature Burial", "de": "Voreiliges Begräbnis", "type": "Zauber", "qty": 1}, {"set": "SD1-DE014", "en": "Swords of Revealing Light", "de": "Verräterische Schwerter", "type": "Zauber", "qty": 1}, {"set": "SD1-DE015", "en": "Pot of Greed", "de": "Topf der Gier", "type": "Zauber", "qty": 1}, {"set": "SD1-DE016", "en": "Heavy Storm", "de": "Schwerer Sturm", "type": "Zauber", "qty": 1}, {"set": "SD1-DE017", "en": "Stamping Destruction", "de": "Stampfende Zerstörung", "type": "Zauber", "qty": 3}, {"set": "SD1-DE018", "en": "Creature Swap", "de": "Kreaturentausch", "type": "Zauber", "qty": 2}, {"set": "SD1-DE019", "en": "Reload", "de": "Nachladen", "type": "Zauber", "qty": 2}, {"set": "SD1-DE020", "en": "The Graveyard in the Fourth Dimension", "de": "Friedhof in der Vierten Dimension", "type": "Zauber", "qty": 1}, {"set": "SD1-DE021", "en": "Call of the Haunted", "de": "Ruf der Gejagten", "type": "Falle", "qty": 1}, {"set": "SD1-DE022", "en": "Ceasefire", "de": "Waffenstillstand", "type": "Falle", "qty": 1}, {"set": "SD1-DE023", "en": "The Dragon's Bead", "de": "Perle des Drachen", "type": "Falle", "qty": 1}, {"set": "SD1-DE024", "en": "Dragon's Rage", "de": "Drachenzorn", "type": "Falle", "qty": 2}, {"set": "SD1-DE025", "en": "Reckless Greed", "de": "Tollkühne Gier", "type": "Falle", "qty": 1}, {"set": "SD1-DE026", "en": "Interdimensional Matter Transporter", "de": "Interdimensionaler Materietransporter", "type": "Falle", "qty": 2}, {"set": "SD1-DE027", "en": "Trap Jammer", "de": "Fallenfalle", "type": "Falle", "qty": 1}, {"set": "SD1-DE028", "en": "Curse of Anubis", "de": "Fluch des Anubis", "type": "Falle", "qty": 1}];
-const cfgs = {a3safe:{w:420,h:297,c:6,r:3,o:'landscape'},a3tight:{w:420,h:297,c:7,r:3,o:'landscape'},sra3:{w:320,h:450,c:5,r:5,o:'portrait'}};
-const scanCache = new Map();
-const metaCache = new Map();
-const renderCache = new Map();
-let galleryMap = null;
-const ATTR = {DARK:'#4e4a6d',LIGHT:'#e7d58b',WIND:'#69b56f',EARTH:'#b88c54',FIRE:'#d56d4a',WATER:'#4a92d5',DIVINE:'#d8d8d8'};
+const cards=[{"set": "SD1-DE001", "en": "Red-Eyes Darkness Dragon", "de": "Rotäugiger Finsterer Drache", "type": "Monster", "qty": 1}, {"set": "SD1-DE002", "en": "Red-Eyes Black Dragon", "de": "Rotäugiger schwarzer Drache", "type": "Monster", "qty": 1}, {"set": "SD1-DE003", "en": "Luster Dragon", "de": "Schimmerdrache", "type": "Monster", "qty": 2}, {"set": "SD1-DE004", "en": "Twin-Headed Behemoth", "de": "Zweiköpfiger Behemoth", "type": "Monster", "qty": 1}, {"set": "SD1-DE005", "en": "Armed Dragon LV3", "de": "Bewaffneter Drache LV3", "type": "Monster", "qty": 2}, {"set": "SD1-DE006", "en": "Armed Dragon LV5", "de": "Bewaffneter Drache LV5", "type": "Monster", "qty": 2}, {"set": "SD1-DE007", "en": "Black Dragon's Chick", "de": "Schwarzes Drachenküken", "type": "Monster", "qty": 1}, {"set": "SD1-DE008", "en": "Element Dragon", "de": "Elementardrache", "type": "Monster", "qty": 1}, {"set": "SD1-DE009", "en": "Masked Dragon", "de": "Maskierter Drache", "type": "Monster", "qty": 3}, {"set": "SD1-DE010", "en": "Snatch Steal", "de": "Schnappstahl", "type": "Zauber", "qty": 1}, {"set": "SD1-DE011", "en": "Mystical Space Typhoon", "de": "Mystischer Raum-Taifun", "type": "Zauber", "qty": 1}, {"set": "SD1-DE012", "en": "Nobleman of Crossout", "de": "Adliger der Auslöschung", "type": "Zauber", "qty": 2}, {"set": "SD1-DE013", "en": "Premature Burial", "de": "Voreiliges Begräbnis", "type": "Zauber", "qty": 1}, {"set": "SD1-DE014", "en": "Swords of Revealing Light", "de": "Verräterische Schwerter", "type": "Zauber", "qty": 1}, {"set": "SD1-DE015", "en": "Pot of Greed", "de": "Topf der Gier", "type": "Zauber", "qty": 1}, {"set": "SD1-DE016", "en": "Heavy Storm", "de": "Schwerer Sturm", "type": "Zauber", "qty": 1}, {"set": "SD1-DE017", "en": "Stamping Destruction", "de": "Stampfende Zerstörung", "type": "Zauber", "qty": 3}, {"set": "SD1-DE018", "en": "Creature Swap", "de": "Kreaturentausch", "type": "Zauber", "qty": 2}, {"set": "SD1-DE019", "en": "Reload", "de": "Nachladen", "type": "Zauber", "qty": 2}, {"set": "SD1-DE020", "en": "The Graveyard in the Fourth Dimension", "de": "Friedhof in der Vierten Dimension", "type": "Zauber", "qty": 1}, {"set": "SD1-DE021", "en": "Call of the Haunted", "de": "Ruf der Gejagten", "type": "Falle", "qty": 1}, {"set": "SD1-DE022", "en": "Ceasefire", "de": "Waffenstillstand", "type": "Falle", "qty": 1}, {"set": "SD1-DE023", "en": "The Dragon's Bead", "de": "Perle des Drachen", "type": "Falle", "qty": 1}, {"set": "SD1-DE024", "en": "Dragon's Rage", "de": "Drachenzorn", "type": "Falle", "qty": 2}, {"set": "SD1-DE025", "en": "Reckless Greed", "de": "Tollkühne Gier", "type": "Falle", "qty": 1}, {"set": "SD1-DE026", "en": "Interdimensional Matter Transporter", "de": "Interdimensionaler Materietransporter", "type": "Falle", "qty": 2}, {"set": "SD1-DE027", "en": "Trap Jammer", "de": "Fallenfalle", "type": "Falle", "qty": 1}, {"set": "SD1-DE028", "en": "Curse of Anubis", "de": "Fluch des Anubis", "type": "Falle", "qty": 1}];
+const cfgs={a3safe:{w:420,h:297,c:6,r:3,o:'landscape'},a3tight:{w:420,h:297,c:7,r:3,o:'landscape'},sra3:{w:320,h:450,c:5,r:5,o:'portrait'}};
+const scans=new Map(); // set -> {blob,url,w,h}
+const metas=new Map(); // set -> YGOPRODeck data (de if available, else en)
 function norm(s){return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/gi,'').toLowerCase()}
 function total(){return cards.reduce((a,c)=>a+c.qty,0)}
-function allCards(){const out=[]; for (const c of cards) for(let i=0;i<c.qty;i++) out.push(c); return out;}
-function save(){const s={}; cards.forEach(c=>s[c.set]=c.qty); localStorage.setItem('ygo-print-dual-v1', JSON.stringify(s));}
-function show(html){document.getElementById('msgText').innerHTML = html; document.getElementById('msg').showModal();}
-function progress(on,p=0,t=''){document.getElementById('prog').classList.toggle('hidden',!on); document.getElementById('progText').classList.toggle('hidden',!on); document.querySelector('#prog i').style.width=(p*100)+'%'; document.getElementById('progText').textContent=t;}
-function updatePages(){const c=cfgs[document.getElementById('layout').value]; document.getElementById('pages').textContent=Math.ceil(total()/(c.c*c.r));}
-function updateCounts(){document.getElementById('loaded').textContent=[...scanCache.values()].filter(x=>x.kind==='de').length+'/28'; document.getElementById('metaCount').textContent=metaCache.size+'/28';}
-async function getBlob(url){const r = await fetch(url,{mode:'cors',cache:'force-cache'}); if(!r.ok) throw new Error('HTTP '+r.status); const b=await r.blob(); if(!b.type.startsWith('image/')) throw new Error('Kein Bild'); return b;}
+function allCopies(){const out=[]; cards.forEach(c=>{for(let i=0;i<c.qty;i++) out.push(c);}); return out;}
+function save(){const st={}; cards.forEach(c=>st[c.set]=c.qty); localStorage.setItem('ygo-battlebox-v12', JSON.stringify(st));}
+function show(html){document.getElementById('msgText').innerHTML=html; document.getElementById('msg').showModal();}
+function prog(on,p=0,text=''){document.getElementById('prog').classList.toggle('hidden',!on); document.getElementById('progText').classList.toggle('hidden',!on); document.querySelector('#prog i').style.width=(p*100)+'%'; document.getElementById('progText').textContent=text;}
+function updateCounts(){document.getElementById('scanCount').textContent=scans.size+'/28'; document.getElementById('metaCount').textContent=metas.size+'/28'; document.getElementById('total').textContent=total(); const c=cfgs[document.getElementById('layout').value]; document.getElementById('pages').textContent=Math.ceil(total()/(c.c*c.r));}
+async function fetchJson(url){const r=await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json();}
+async function fetchBlob(url){const r=await fetch(url,{mode:'cors',cache:'force-cache'}); if(!r.ok) throw new Error('HTTP '+r.status); const b=await r.blob(); return b;}
+function loadImage(src){return new Promise((res,rej)=>{const img=new Image(); img.crossOrigin='anonymous'; img.onload=()=>res(img); img.onerror=rej; img.src=src;})}
 function blobToDataURL(blob){return new Promise((res,rej)=>{const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(blob);})}
-function loadImg(blob){return new Promise(async (res,rej)=>{try{const url=URL.createObjectURL(blob); const img=new Image(); img.crossOrigin='anonymous'; img.onload=()=>res(img); img.onerror=rej; img.src=url;}catch(e){rej(e)}})}
-async function gallery(){
-  if(galleryMap) return galleryMap;
-  galleryMap = new Map();
-  const api='https://yugioh.fandom.com/api.php';
-  const pageName="Set Card Galleries:Structure Deck - Dragon's Roar (TCG-DE-1E)";
-  const q = new URLSearchParams({action:'query',format:'json',origin:'*',titles:pageName,prop:'images',imlimit:'max'});
-  const j = await (await fetch(api+'?'+q)).json();
-  const page = Object.values(j.query.pages)[0];
-  const titles = (page.images||[]).map(x=>x.title).filter(x=>/SD1-DE/i.test(x));
-  for(let i=0;i<titles.length;i+=40){
-    const chunk=titles.slice(i,i+40);
-    const q2 = new URLSearchParams({action:'query',format:'json',origin:'*',prop:'imageinfo',iiprop:'url',titles:chunk.join('|')});
-    const j2 = await (await fetch(api+'?'+q2)).json();
-    for(const pg of Object.values(j2.query.pages)){
-      const title=(pg.title||'').replace(/^File:/,'');
-      const url=pg.imageinfo?.[0]?.url;
-      if(!url) continue;
-      const base=title.split('-SD1-DE')[0];
-      galleryMap.set(norm(base), url);
-    }
-  }
-  return galleryMap;
-}
 async function getScan(card){
-  if(scanCache.has(card.set)) return scanCache.get(card.set);
-  try{
-    const g = await gallery();
-    const u = g.get(norm(card.en));
-    if(u){
-      const b=await getBlob(u); const obj={blob:b, kind:'de', url:URL.createObjectURL(b)}; scanCache.set(card.set,obj); return obj;
-    }
-  }catch(e){ console.warn('German scan failed', card.en, e); }
-  const api='https://db.ygoprodeck.com/api/v7/cardinfo.php?name='+encodeURIComponent(card.en);
-  const j=await (await fetch(api)).json();
-  const url=j.data?.[0]?.card_images?.[0]?.image_url;
-  if(!url) throw new Error('Kein Bild gefunden');
-  const b=await getBlob(url); const obj={blob:b, kind:'fallback', url:URL.createObjectURL(b)}; scanCache.set(card.set,obj); return obj;
+  if(scans.has(card.set)) return scans.get(card.set);
+  const en=await fetchJson('https://db.ygoprodeck.com/api/v7/cardinfo.php?name='+encodeURIComponent(card.en));
+  const data=en.data?.[0]; if(!data) throw new Error('Kein YGOPRODeck-Eintrag für '+card.en);
+  const imgUrl=data.card_images?.[0]?.image_url; if(!imgUrl) throw new Error('Kein Bild für '+card.en);
+  const blob=await fetchBlob(imgUrl); const url=URL.createObjectURL(blob); const img=await loadImage(url);
+  const obj={blob,url,w:img.naturalWidth||img.width,h:img.naturalHeight||img.height}; scans.set(card.set,obj); return obj;
 }
 async function getMeta(card){
-  if(metaCache.has(card.set)) return metaCache.get(card.set);
+  if(metas.has(card.set)) return metas.get(card.set);
   let data=null;
   try{
-    const deUrl='https://db.ygoprodeck.com/api/v7/cardinfo.php?name='+encodeURIComponent(card.en)+'&language=de';
-    const de=await (await fetch(deUrl)).json();
+    const de=await fetchJson('https://db.ygoprodeck.com/api/v7/cardinfo.php?name='+encodeURIComponent(card.en)+'&language=de');
     data=de.data?.[0]||null;
   }catch(e){}
-  if(!data){
-    const enUrl='https://db.ygoprodeck.com/api/v7/cardinfo.php?name='+encodeURIComponent(card.en);
-    const en=await (await fetch(enUrl)).json();
-    data=en.data?.[0]||null;
-  }
-  if(!data) throw new Error('Keine Metadaten');
-  metaCache.set(card.set,data); return data;
-}
-function wrapText(ctx, text, x, y, maxW, lineH, maxLines){
-  const words = (text||'').replace(/\r/g,' ').replace(/\n+/g,' ').split(/\s+/).filter(Boolean);
-  let line='', lines=[];
-  for(const w of words){
-    const test = line ? line+' '+w : w;
-    if(ctx.measureText(test).width > maxW && line){ lines.push(line); line=w; if(lines.length>=maxLines-1) break; } else line=test;
-  }
-  if(line && lines.length<maxLines) lines.push(line);
-  if(words.length && lines.length===maxLines){ let last=lines[maxLines-1]; while(ctx.measureText(last+'…').width>maxW && last.length>1) last=last.slice(0,-1); lines[maxLines-1]=last+'…'; }
-  lines.forEach((ln,i)=>ctx.fillText(ln,x,y+i*lineH));
-}
-function germanTypeLine(meta, card){
-  if(card.type==='Zauber') return '[ZAUBERKARTE]';
-  if(card.type==='Falle') return '[FALLENKARTE]';
-  const race=(meta.race||'Monster').toUpperCase();
-  const kind=(meta.type||'').includes('Normal')?'NORMAL':((meta.type||'').includes('Effect')?'EFFEKT':'MONSTER');
-  return '['+race+' / '+kind+']';
-}
-function effectText(meta, card){
-  if(meta.desc) return String(meta.desc).replace(/\r/g,'').replace(/\n{2,}/g,'\n').replace(/\n/g,' ');
-  return card.type==='Zauber' ? 'Zauberkarte.' : card.type==='Falle' ? 'Fallenkarte.' : 'Effektmonster.';
-}
-async function renderCard(card){
-  if(renderCache.has(card.set)) return renderCache.get(card.set);
-  const meta = await getMeta(card);
-  const scan = await getScan(card);
-  const scanImg = await loadImg(scan.blob);
-  const cv=document.createElement('canvas'); cv.width=744; cv.height=1086; const ctx=cv.getContext('2d');
-  const W=cv.width, H=cv.height;
-  let bg1='#e4c085', bg2='#c89c60';
-  if(card.type==='Zauber'){bg1='#77b778'; bg2='#2f8f6e';}
-  if(card.type==='Falle'){bg1='#b881b8'; bg2='#8a4a85';}
-  const grad=ctx.createLinearGradient(0,0,0,H); grad.addColorStop(0,bg1); grad.addColorStop(1,bg2); ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
-  ctx.lineWidth=16; ctx.strokeStyle='#222'; ctx.strokeRect(8,8,W-16,H-16); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.35)'; ctx.strokeRect(24,24,W-48,H-48);
-  ctx.fillStyle='rgba(255,245,225,.95)'; ctx.fillRect(40,48,W-80,66); ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.strokeRect(40,48,W-80,66);
-  ctx.fillStyle='#1b1b1b'; ctx.font='bold 34px Georgia, serif'; ctx.textBaseline='middle'; ctx.fillText(card.de,56,81, W-150);
-  if(card.type==='Monster'){
-    const attr=(meta.attribute||'').toUpperCase()||'MON';
-    ctx.fillStyle=ATTR[attr]||'#6f7d93'; ctx.beginPath(); ctx.arc(W-82,81,26,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.lineWidth=2; ctx.stroke();
-    ctx.fillStyle='white'; ctx.font='bold 13px Arial'; ctx.textAlign='center'; ctx.fillText(attr.slice(0,3),W-82,82);
-    ctx.textAlign='left';
-    const level=Number(meta.level||0);
-    ctx.font='22px Georgia'; ctx.fillStyle='#c77c2d';
-    const count=Math.min(level,12);
-    for(let i=0;i<count;i++) ctx.fillText('★', W-70-(count-1-i)*28, 143);
-  } else {
-    ctx.fillStyle='rgba(255,245,225,.95)'; ctx.fillRect(W-160,56,104,40); ctx.strokeRect(W-160,56,104,40); ctx.fillStyle='#1b1b1b'; ctx.font='bold 18px Arial'; ctx.textAlign='center'; ctx.fillText(card.type==='Zauber'?'ZAUBER':'FALLE',W-108,82); ctx.textAlign='left';
-  }
-  const art={x:92,y:182,w:560,h:390};
-  ctx.fillStyle='rgba(215,225,235,.8)'; ctx.fillRect(art.x,art.y,art.w,art.h); ctx.strokeStyle='#424b58'; ctx.lineWidth=16; ctx.strokeRect(art.x-8,art.y-8,art.w+16,art.h+16); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.55)'; ctx.strokeRect(art.x-4,art.y-4,art.w+8,art.h+8);
-  const sx=scanImg.width*0.16, sy=scanImg.height*0.17, sw=scanImg.width*0.68, sh=scanImg.height*0.45;
-  ctx.drawImage(scanImg,sx,sy,sw,sh,art.x,art.y,art.w,art.h);
-  const boxY=608;
-  ctx.fillStyle='rgba(255,245,225,.95)'; ctx.fillRect(48,boxY,W-96,318); ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.lineWidth=2; ctx.strokeRect(48,boxY,W-96,318);
-  ctx.fillStyle='#111'; ctx.font='bold 22px Arial'; ctx.fillText(germanTypeLine(meta,card),58,boxY+30);
-  ctx.font='18px Arial'; wrapText(ctx,effectText(meta,card),58,boxY+66,W-116,24,9);
-  if(card.type==='Monster'){ ctx.font='bold 28px Georgia, serif'; ctx.fillText('ATK/'+String(meta.atk ?? '?')+'   DEF/'+String(meta.def ?? '?'), W-305, H-82); }
-  else { ctx.font='14px Arial'; ctx.fillText(card.type==='Zauber'?'Zauberkarte':'Fallenkarte', 58, H-82); }
-  ctx.font='12px Arial'; ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fillText(card.set, W-135, H-28); ctx.fillText('Proxy Render', 54, H-28);
-  const data=cv.toDataURL('image/png'); renderCache.set(card.set, data); return data;
+  if(!data){ const en=await fetchJson('https://db.ygoprodeck.com/api/v7/cardinfo.php?name='+encodeURIComponent(card.en)); data=en.data?.[0]||null; }
+  if(!data) throw new Error('Keine Metadaten für '+card.en);
+  metas.set(card.set,data); return data;
 }
 function renderList(){
-  document.getElementById('total').textContent=total();
+  updateCounts();
+  const host=document.getElementById('cards'); host.innerHTML='';
   const q=norm(document.getElementById('search').value);
-  const host=document.getElementById('list'); host.innerHTML='';
   for(const type of ['Monster','Zauber','Falle']){
     const arr=cards.filter(c=>c.type===type && (!q || norm(c.de+c.en+c.set).includes(q)));
     if(!arr.length) continue;
-    const box=document.createElement('div'); box.className='box'; box.innerHTML='<div class="section">'+(type==='Falle'?'Fallen':type)+'</div>';
-    for(const c of arr){
-      const im=scanCache.get(c.set);
-      const dot = im ? (im.kind==='de' ? 'var(--ok)' : 'var(--w)') : '#56606f';
+    const box=document.createElement('div'); box.className='box'; box.innerHTML='<div class="head">'+(type==='Falle'?'Fallen':type)+'</div>';
+    arr.forEach(card=>{
       const row=document.createElement('div'); row.className='row';
-      row.innerHTML='<div class="thumb" style="'+(im?'background-image:url('+JSON.stringify(im.url)+')':'')+'"><span class="dot" style="background:'+dot+'"></span></div><div><div class="name">'+c.de+'</div><div class="meta">'+c.set+' · '+c.en+'</div></div><div class="step"><button data-d="-1">−</button><span class="n">'+c.qty+'</span><button data-d="1">+</button></div>';
-      row.querySelectorAll('button').forEach(b=>b.onclick=()=>{c.qty=Math.max(0,Math.min(9,c.qty+Number(b.dataset.d))); save(); renderList(); updatePages();});
+      const sc=scans.get(card.set); const dot=sc ? 'var(--ok)' : '#596273';
+      row.innerHTML='<div class="thumb" style="'+(sc?'background-image:url('+JSON.stringify(sc.url)+')':'')+'"><span class="dot" style="background:'+dot+'"></span></div><div><div class="name">'+card.de+'</div><div class="meta">'+card.set+' · '+card.en+'</div></div><div class="step"><button data-d="-1">−</button><span class="count">'+card.qty+'</span><button data-d="1">+</button></div>';
+      row.querySelectorAll('button').forEach(b=>b.onclick=(e)=>{e.stopPropagation(); card.qty=Math.max(0,Math.min(9,card.qty+Number(b.dataset.d))); save(); renderList();});
       box.appendChild(row);
-    }
+    });
     host.appendChild(box);
   }
-  updateCounts(); updatePages();
-}
-async function preloadScans(){
-  let fail=0;
-  for(let i=0;i<cards.length;i++){
-    progress(true,(i+1)/cards.length,(i+1)+'/28 · Scan '+cards[i].de);
-    try{ await getScan(cards[i]); }catch(e){ fail++; console.warn(cards[i].de,e); }
-    renderList();
-  }
-  progress(false);
-  show('<b>Scans geladen.</b><br><br>Grün = deutscher Scan, Gelb = Fallback.<br><br>'+fail+' Karten ohne geladenen Scan.');
-}
-async function preloadMeta(){
-  let fail=0;
-  for(let i=0;i<cards.length;i++){
-    progress(true,(i+1)/cards.length,(i+1)+'/28 · Meta '+cards[i].de);
-    try{ await getMeta(cards[i]); }catch(e){ fail++; console.warn(cards[i].de,e); }
-    renderList();
-  }
-  progress(false);
-  show('<b>Metadaten geladen.</b><br><br>'+fail+' Karten ohne Metadaten.');
 }
 async function loadAllSources(){
-  for(let i=0;i<cards.length;i++){
-    progress(true,(i+1)/(cards.length*2),(i+1)+'/28 · Scan '+cards[i].de);
-    try{ await getScan(cards[i]); }catch(e){}
-  }
-  for(let i=0;i<cards.length;i++){
-    progress(true,(cards.length+i+1)/(cards.length*2),(i+1)+'/28 · Renderdaten '+cards[i].de);
-    try{ await getMeta(cards[i]); }catch(e){}
-  }
-  progress(false); renderList(); show('<b>Quellen geladen.</b><br><br>Du kannst jetzt <b>Scan-PDF</b>, <b>Render-PDF</b> oder <b>Beide PDFs</b> erzeugen.');
+  const unique=cards.slice();
+  for(let i=0;i<unique.length;i++){ prog(true,(i+1)/(unique.length*2),'Scans '+(i+1)+'/'+unique.length+' · '+unique[i].de); try{await getScan(unique[i]);}catch(e){console.warn(e)} renderList(); }
+  for(let i=0;i<unique.length;i++){ prog(true,(unique.length+i+1)/(unique.length*2),'DE-Metadaten '+(i+1)+'/'+unique.length+' · '+unique[i].de); try{await getMeta(unique[i]);}catch(e){console.warn(e)} renderList(); }
+  prog(false); show('<b>YGOPRODeck-Quelle geladen.</b><br><br><span class="ok">'+scans.size+' Scans</span><br><span class="ok">'+metas.size+' Metadatensätze</span>');
 }
-function drawCropMarks(pdf,cfg,sx,sy,cw,ch){
-  const g=.65,m=2.0,R=sx+cfg.c*cw,B=sy+cfg.r*ch; pdf.setLineWidth(.15);
-  for(let i=0;i<=cfg.c;i++){ const x=sx+i*cw; pdf.line(x,sy-g-m,x,sy-g); pdf.line(x,B+g,x,B+g+m); }
-  for(let j=0;j<=cfg.r;j++){ const y=sy+j*ch; pdf.line(sx-g-m,y,sx-g,y); pdf.line(R+g,y,R+g+m,y); }
+function cropMarks(pdf,cfg,sx,sy,cw,ch){ const gap=.65, mark=2.0, right=sx+cfg.c*cw, bottom=sy+cfg.r*ch; pdf.setLineWidth(.15); for(let i=0;i<=cfg.c;i++){const x=sx+i*cw; pdf.line(x,sy-gap-mark,x,sy-gap); pdf.line(x,bottom+gap,x,bottom+gap+mark);} for(let i=0;i<=cfg.r;i++){const y=sy+i*ch; pdf.line(sx-gap-mark,y,sx-gap,y); pdf.line(right+gap,y,right+gap+mark,y);} }
+function wrapText(ctx,text,x,y,maxW,lineH,maxLines){ const words=String(text||'').replace(/\r/g,' ').replace(/\n+/g,' ').split(/\s+/).filter(Boolean); let line=''; const lines=[]; for(const w of words){ const test=line?line+' '+w:w; if(ctx.measureText(test).width>maxW && line){ lines.push(line); line=w; if(lines.length>=maxLines-1) break; } else line=test; } if(line && lines.length<maxLines) lines.push(line); if(words.length && lines.length===maxLines){ let last=lines[maxLines-1]; while(ctx.measureText(last+'…').width>maxW && last.length>1) last=last.slice(0,-1); lines[maxLines-1]=last+'…'; } lines.forEach((ln,i)=>ctx.fillText(ln,x,y+i*lineH)); }
+function typeLine(meta,card){ if(card.type==='Zauber') return '[ZAUBERKARTE]'; if(card.type==='Falle') return '[FALLENKARTE]'; const race=(meta.race||'MONSTER').toUpperCase(); const kind=(meta.type||'').includes('Normal')?'NORMAL':((meta.type||'').includes('Effect')?'EFFEKT':'MONSTER'); return '['+race+' / '+kind+']'; }
+function effectText(meta,card){ return String(meta.desc || (card.type==='Zauber'?'Zauberkarte.':card.type==='Falle'?'Fallenkarte.':'Effektmonster.')).replace(/\r/g,' ').replace(/\n+/g,' '); }
+function maskRoundRect(ctx,x,y,w,h,r,fill,stroke){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); if(fill){ctx.fillStyle=fill; ctx.fill();} if(stroke){ctx.strokeStyle=stroke; ctx.stroke();} }
+async function renderGermanCard(card){
+  const meta=await getMeta(card); const scan=await getScan(card); const baseUrl=scan.url; const base=await loadImage(baseUrl);
+  const W=744, H=1086; const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const ctx=cv.getContext('2d');
+  ctx.drawImage(base,0,0,W,H);
+  // name bar mask
+  maskRoundRect(ctx,46,44,550,52,8,'rgba(248,242,223,.98)','rgba(0,0,0,.18)');
+  ctx.fillStyle='#1a1a1a'; ctx.font='bold 33px Georgia, serif'; ctx.textBaseline='middle';
+  let name=card.de; while(ctx.measureText(name).width>515 && name.length>1) name=name.slice(0,-1); if(name!==card.de) name=name.slice(0,-1)+'…'; ctx.fillText(name,60,70);
+  // info areas
+  const infoFill='rgba(247,239,222,.96)'; const infoStroke='rgba(0,0,0,.17)';
+  // type line mask
+  ctx.fillStyle=infoFill; ctx.fillRect(58,655,628,28); ctx.strokeStyle=infoStroke; ctx.strokeRect(58,655,628,28);
+  // effect box mask
+  ctx.fillStyle=infoFill; ctx.fillRect(58,686,628,184); ctx.strokeRect(58,686,628,184);
+  ctx.fillStyle='#111'; ctx.textBaseline='alphabetic';
+  ctx.font='bold 17px Arial'; ctx.fillText(typeLine(meta,card),66,675);
+  ctx.font='14px Arial'; wrapText(ctx,effectText(meta,card),68,704,610,18,9);
+  // set code / password cleanup and redraw small details
+  ctx.fillStyle='rgba(232,221,198,.92)'; ctx.fillRect(537,866,140,18);
+  ctx.fillStyle='rgba(0,0,0,.62)'; ctx.font='12px Arial'; ctx.fillText(card.set,590,879);
+  // normal monsters often have flavor quote style but we keep generic text block.
+  // tiny footer marker
+  ctx.fillStyle='rgba(255,255,255,.75)'; ctx.font='10px Arial'; ctx.fillText('German Render',46,1070);
+  return cv.toDataURL('image/png');
 }
 async function buildPDF(mode){
-  const active=cards.filter(c=>c.qty>0);
-  if(mode==='scan'){
-    for(let i=0;i<active.length;i++){ progress(true,(i+1)/active.length,'Scan vorbereiten · '+active[i].de); await getScan(active[i]); }
-  } else {
-    for(let i=0;i<active.length;i++){ progress(true,(i+1)/active.length,'Render vorbereiten · '+active[i].de); await getScan(active[i]); await getMeta(active[i]); await renderCard(active[i]); }
-  }
-  const cfg=cfgs[document.getElementById('layout').value];
-  const arr=allCards(), cap=cfg.c*cfg.r, pdf=new window.jspdf.jsPDF({orientation:cfg.o,unit:'mm',format:[cfg.w,cfg.h],compress:true}), cw=59,ch=86, sx=(cfg.w-cfg.c*cw)/2, sy=(cfg.h-cfg.r*ch)/2, pageCount=Math.ceil(arr.length/cap);
-  let done=0, fallback=0;
-  for(let p=0;p<pageCount;p++){
-    if(p) pdf.addPage([cfg.w,cfg.h], cfg.o);
-    const chunk=arr.slice(p*cap,(p+1)*cap);
-    for(let slot=0;slot<chunk.length;slot++){
+  const unique=cards.filter(c=>c.qty>0); const cfg=cfgs[document.getElementById('layout').value]; const copies=allCopies(); const cap=cfg.c*cfg.r;
+  if(mode==='scan'){ for(let i=0;i<unique.length;i++){ prog(true,(i+1)/unique.length,'Best Scan vorbereiten · '+unique[i].de); await getScan(unique[i]); } }
+  else { for(let i=0;i<unique.length;i++){ prog(true,(i+1)/unique.length,'German Render vorbereiten · '+unique[i].de); await getMeta(unique[i]); await getScan(unique[i]); } }
+  const pdf=new window.jspdf.jsPDF({orientation:cfg.o, unit:'mm', format:[cfg.w,cfg.h], compress:true}); const cw=59, ch=86; const sx=(cfg.w-cfg.c*cw)/2, sy=(cfg.h-cfg.r*ch)/2;
+  let done=0;
+  for(let page=0; page<Math.ceil(copies.length/cap); page++){
+    if(page) pdf.addPage([cfg.w,cfg.h], cfg.o);
+    const chunk=copies.slice(page*cap,(page+1)*cap);
+    for(let slot=0; slot<chunk.length; slot++){
       const card=chunk[slot], row=Math.floor(slot/cfg.c), col=slot%cfg.c, x=sx+col*cw, y=sy+row*ch;
-      let data;
-      if(mode==='scan'){ const sc=await getScan(card); if(sc.kind==='fallback') fallback++; data=await blobToDataURL(sc.blob); pdf.addImage(data, sc.blob.type.includes('png')?'PNG':'JPEG', x,y,cw,ch,undefined,'FAST'); }
-      else { data=await renderCard(card); pdf.addImage(data,'PNG',x,y,cw,ch,undefined,'FAST'); }
-      done++; progress(true,done/arr.length,(mode==='scan'?'Scan':'Render')+' PDF · Karte '+done+'/'+arr.length);
+      let data, fmt;
+      if(mode==='scan'){ const sc=await getScan(card); data=await blobToDataURL(sc.blob); fmt=sc.blob.type.includes('png')?'PNG':'JPEG'; }
+      else { data=await renderGermanCard(card); fmt='PNG'; }
+      pdf.addImage(data,fmt,x,y,cw,ch,undefined,'FAST'); done++; prog(true,done/copies.length,(mode==='scan'?'Best Scan':'German Render')+' · Karte '+done+'/'+copies.length);
     }
-    if(document.getElementById('marks').value==='1') drawCropMarks(pdf,cfg,sx,sy,cw,ch);
+    if(document.getElementById('marks').value==='1') cropMarks(pdf,cfg,sx,sy,cw,ch);
   }
-  const filename='Dragons_Roar_'+(mode==='scan'?'MaxScan':'Render')+'_'+document.getElementById('layout').value+'.pdf';
-  pdf.save(filename);
-  progress(false);
-  if(mode==='scan') show('<b>Scan-PDF erstellt.</b><br><br>'+fallback+' Kartenkopien verwenden Fallback-Scans.');
-  else show('<b>Render-PDF erstellt.</b><br><br>Das ist eine scharfe Proxy-Version mit neu gerendertem Rahmen/Text.');
+  pdf.save('Dragons_Roar_'+(mode==='scan'?'BestScan':'GermanRender')+'_'+document.getElementById('layout').value+'.pdf'); prog(false);
+  show('<b>'+(mode==='scan'?'Best-Scan':'German-Render')+'-PDF erstellt.</b><br><br>'+(mode==='scan'?'Englische Komplettkarten direkt aus YGOPRODeck.':'Deutsche Proxy-Karten auf Basis derselben YGOPRODeck-Scans.'));
 }
-async function buildBoth(){
-  await buildPDF('scan');
-  setTimeout(async()=>{ await buildPDF('render'); }, 900);
-}
-const saved=JSON.parse(localStorage.getItem('ygo-print-dual-v1')||'{}'); cards.forEach(c=>{ if(Number.isFinite(saved[c.set])) c.qty=saved[c.set]; });
-document.getElementById('images').onclick=loadAllSources;
-document.getElementById('scanPdf').onclick=()=>buildPDF('scan');
-document.getElementById('renderPdf').onclick=()=>buildPDF('render');
-document.getElementById('bothPdf').onclick=buildBoth;
-document.getElementById('search').oninput=renderList;
-document.getElementById('layout').onchange=updatePages;
-document.getElementById('closeMsg').onclick=()=>document.getElementById('msg').close();
-renderList();
+async function buildBoth(){ await buildPDF('scan'); setTimeout(()=>buildPDF('render'),700); }
+document.getElementById('search').oninput=renderList; document.getElementById('layout').onchange=updateCounts; document.getElementById('loadBtn').onclick=loadAllSources; document.getElementById('scanBtn').onclick=()=>buildPDF('scan'); document.getElementById('renderBtn').onclick=()=>buildPDF('render'); document.getElementById('bothBtn').onclick=buildBoth;
+const saved=JSON.parse(localStorage.getItem('ygo-battlebox-v12')||'{}'); cards.forEach(c=>{ if(Number.isFinite(saved[c.set])) c.qty=saved[c.set]; }); renderList();
 </script>
 </body></html>

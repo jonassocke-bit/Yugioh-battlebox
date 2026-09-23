@@ -1,0 +1,19 @@
+{
+  "name": "yugioh-battlebox-render-poc",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "scripts": {
+    "postinstall": "rm -rf renderer-src renderer-assets && git clone --depth 1 https://github.com/kooriookami/yugioh-card.git renderer-src && mkdir -p renderer-assets && cp -R renderer-src/src/assets/yugioh-card renderer-assets/yugioh-card && rm -rf renderer-src",
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "pdf-lib": "^1.17.1",
+    "skia-canvas": "^2.0.2",
+    "yugioh-card": "1.9.2"
+  }
+}

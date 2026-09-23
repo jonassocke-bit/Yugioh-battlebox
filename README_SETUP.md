@@ -39,3 +39,9 @@ vom Repository bestätigt wird.
 - neuer Button **Deck neu rendern**
 - überschreibt vorhandene Karten im Archiv direkt neu
 - kein Löschen vorher nötig
+
+
+## v0.13 Patch
+- Monster-Typzeile im Renderer per Postinstall-Patch auf **90 %** verkleinert
+- Normale Monster zeigen jetzt nur noch den Typ, also z. B. **[DRACHE]** statt **[DRACHE / NORMAL]**
+- ideal vor einem späteren 'Alle rendern'-Button

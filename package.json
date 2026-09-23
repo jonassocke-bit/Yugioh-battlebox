@@ -1,13 +1,13 @@
 {
   "name": "yugioh-battlebox-render-server",
-  "version": "0.10.0",
+  "version": "0.13.0",
   "private": true,
   "type": "module",
   "engines": {
     "node": ">=22 <23"
   },
   "scripts": {
-    "postinstall": "rm -rf renderer-src renderer-assets && git clone --depth 1 https://github.com/kooriookami/yugioh-card.git renderer-src && mkdir -p renderer-assets && cp -R renderer-src/src/assets/yugioh-card renderer-assets/yugioh-card && rm -rf renderer-src",
+    "postinstall": "rm -rf renderer-src renderer-assets && git clone --depth 1 https://github.com/kooriookami/yugioh-card.git renderer-src && mkdir -p renderer-assets && cp -R renderer-src/src/assets/yugioh-card renderer-assets/yugioh-card && rm -rf renderer-src && node patch-yugioh-card.mjs",
     "start": "node server.mjs"
   },
   "dependencies": {

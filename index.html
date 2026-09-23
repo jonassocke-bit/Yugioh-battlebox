@@ -32,7 +32,7 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 </head>
 <body>
 <div class="app">
-  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.13</div>
+  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.14</div>
   <h1 id="deckTitle" class="title">Deck laden …</h1>
   <div id="deckSource" class="source"></div>
 
@@ -73,7 +73,7 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 
 <div class="bottom"><div class="bottomIn">
   <button id="renderMissing" class="btn sec">Fehlende rendern</button>
-  <button id="rerenderDeck" class="btn warnBtn">Deck neu rendern</button>
+  <button id="rerenderDeck" class="btn warnBtn">Deck komplett neu rendern</button>
   <button id="makePdf" class="btn pri pdfAction">PDF erstellen</button>
   <a id="pdfDownload" class="btn sec pdfDownload pdfAction" href="#" target="_blank" rel="noopener">PDF öffnen / herunterladen</a>
 </div></div>
@@ -99,11 +99,17 @@ const layouts={
   sra3:{w:320,h:450,cols:5,rows:5,label:'SRA3'}
 };
 let library=null,currentDeck=null,quantities={},assetState=new Map(),tempSources=new Map(),activeJob=null,pollTimer=null,pdfBlobUrl=null;
+const SESSION_ASSET_REV=Date.now().toString(36);
+const assetRevision=new Map();
 
 const $=id=>document.getElementById(id);
 function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
 function keyOf(c){return String(c.key||c.set||c.en).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase()}
-function localUrl(c,bust=false){return `cards/${encodeURIComponent(keyOf(c))}.png${bust?'?v='+Date.now():''}`}
+function localUrl(c,bust=false){
+  const k=keyOf(c);
+  const rev=bust?Date.now().toString(36):(assetRevision.get(k)||SESSION_ASSET_REV);
+  return `cards/${encodeURIComponent(k)}.png?v=${encodeURIComponent(rev)}`;
+}
 function sourceText(d){const s=d.source||{};return [s.label||d.category,s.recipe?`„${s.recipe}“`:null,s.year||d.year].filter(Boolean).join(' · ')}
 function qty(c){return quantities[c.set||keyOf(c)] ?? Number(c.qty||0)}
 function currentCards(){return (currentDeck?.cards||[]).filter(c=>qty(c)>0)}
@@ -135,7 +141,7 @@ function updateStats(){
   $('renderMissing').disabled=!missing || Boolean(activeJob) || !cards.length;
   $('renderMissing').textContent=missing?`${missing} fehlende rendern`:(cards.length?'Alles vorhanden':'Deckliste laden …');
   $('rerenderDeck').disabled=Boolean(activeJob) || !cards.length;
-  $('rerenderDeck').textContent=cards.length?`${cards.length} Karten neu rendern`:'Deck neu rendern';
+  $('rerenderDeck').textContent=cards.length?`${cards.length} Karten neu rendern`:'Deck komplett neu rendern';
 }
 
 async function existsLocal(card,bust=false){
@@ -372,6 +378,7 @@ async function pollJob(id){
         for(const c of currentCards()){
           const k=keyOf(c);
           if((j.outputs||[]).includes(k)){
+            if(j.commitSha)assetRevision.set(k,j.commitSha);
             if(await existsLocal(c,true)){assetState.set(k,{state:'ok'});tempSources.delete(k)}
             else remaining++;
           }

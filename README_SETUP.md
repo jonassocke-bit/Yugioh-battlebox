@@ -45,3 +45,30 @@ vom Repository bestätigt wird.
 - Monster-Typzeile im Renderer per Postinstall-Patch auf **90 %** verkleinert
 - Normale Monster zeigen jetzt nur noch den Typ, also z. B. **[DRACHE]** statt **[DRACHE / NORMAL]**
 - ideal vor einem späteren 'Alle rendern'-Button
+
+## v0.14 – Final-Polish-Test
+
+Vor einem späteren Mass-Render sind jetzt die aktuell bekannten Darstellungsfehler zusammengezogen:
+
+- Monster-Typzeile auf **81 %** der ursprünglichen Renderer-Größe
+- Typzeilen ohne Leerzeichen um `/`, z. B. `[PYRO/EFFEKT]`
+- `Normal` wird bei normalen Monstern weiterhin weggelassen
+- `typeline` der Kartendaten wird vollständig übersetzt:
+  Effekt, Ritual, Fusion, Toon, Spirit, Union, Zwilling, Empfänger, Flipp usw.
+- Kartennummer/Passcode immer achtstellig (`00980973`)
+- Sicherheits-Hologramm unten rechts (`laser1`)
+- deutsche Attributbeschriftungen: FINSTERNIS, LICHT, ERDE, WASSER, FEUER, WIND, GÖTTLICH
+- deutsche ZAUBER-/FALLE-Beschriftung im Attributsymbol
+- aggressives First-Line-Autoscaling entfernt
+- Renderer wechselt bei langen Texten früher auf die kleinere Textgröße statt alles horizontal zusammenzuquetschen
+- „Deck komplett neu rendern“ umgeht jetzt wirklich den Render-Cache
+- Browser verwendet nach Neu-Rendern Cache-Busting, damit nicht weiter alte GitHub-PNGs angezeigt werden
+
+### Testempfehlung
+Vor dem kompletten Leeren von `cards/` zuerst ein einzelnes Deck komplett neu rendern und
+mindestens diese Fälle ansehen:
+1. normales Monster
+2. langes Effektmonster (z. B. Babyspieldrache der Harpyien)
+3. sehr langer Text (z. B. Infernaler Flammenherrscher)
+4. Permanent-/Konterkarte
+5. Toon/Union/Flipp/Tuner, sobald im gewählten Deck vorhanden

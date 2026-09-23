@@ -67,24 +67,14 @@ function spellTrapIcon(en,de){
   return iconMap[raw] ?? '';
 }
 function descriptionStyle(desc, type){
-  const raw = String(desc || '');
-  const len = cleanText(raw).length;
-  const breaks = (raw.match(/\n/g) || []).length;
-  const bulletCount = (raw.match(/●/g) || []).length;
-  const pressure = len + breaks * 22 + bulletCount * 14;
-
-  if(type === 'monster'){
-    if(pressure >= 270) return { descriptionZoom: 0.76, firstLineCompress: true, descriptionWeight: -0.06 };
-    if(pressure >= 235) return { descriptionZoom: 0.82, firstLineCompress: true, descriptionWeight: -0.04 };
-    if(pressure >= 205) return { descriptionZoom: 0.88, firstLineCompress: true, descriptionWeight: -0.02 };
-    if(pressure >= 175) return { descriptionZoom: 0.94, firstLineCompress: true, descriptionWeight: 0 };
-    return { descriptionZoom: 1, firstLineCompress: false, descriptionWeight: 0 };
-  }
-
-  if(pressure >= 240) return { descriptionZoom: 0.80, firstLineCompress: true, descriptionWeight: -0.05 };
-  if(pressure >= 205) return { descriptionZoom: 0.86, firstLineCompress: true, descriptionWeight: -0.03 };
-  if(pressure >= 170) return { descriptionZoom: 0.92, firstLineCompress: true, descriptionWeight: -0.01 };
-  return { descriptionZoom: 1, firstLineCompress: false, descriptionWeight: 0 };
+  // Wichtig: keine First-Line-Kompression mehr. Sie konnte bei deutschen Texten
+  // komplette Effekte horizontal in eine Mini-Zeile quetschen.
+  // Das eigentliche Höhen-Fitting übernimmt der gepatchte CompressText-Renderer.
+  return {
+    descriptionZoom: 1,
+    firstLineCompress: false,
+    descriptionWeight: 0
+  };
 }
 function mainType(en){
   if((en.type||'').includes('Spell')) return 'spell';
@@ -101,17 +91,53 @@ function cardType(en){
   return ['normal','effect','ritual','fusion','synchro','xyz','link','token'].includes(frame)
     ? frame : ((en.type||'').includes('Normal Monster')?'normal':'effect');
 }
+const TYPELINE_DE = {
+  'Normal':'',
+  'Effect':'EFFEKT',
+  'Ritual':'RITUAL',
+  'Fusion':'FUSION',
+  'Synchro':'SYNCHRO',
+  'Xyz':'XYZ',
+  'Link':'LINK',
+  'Toon':'TOON',
+  'Spirit':'SPIRIT',
+  'Union':'UNION',
+  'Gemini':'ZWILLING',
+  'Tuner':'EMPFÄNGER',
+  'Flip':'FLIPP',
+  'Pendulum':'PENDEL',
+  'Token':'SPIELMARKE'
+};
+
+function fallbackTypeline(en){
+  const t=String(en.type||'');
+  const parts=[en.race||'Monster'];
+  if(t.includes('Ritual')) parts.push('Ritual');
+  if(t.includes('Fusion')) parts.push('Fusion');
+  if(t.includes('Synchro')) parts.push('Synchro');
+  if(t.includes('Xyz')) parts.push('Xyz');
+  if(t.includes('Link')) parts.push('Link');
+  if(t.includes('Toon')) parts.push('Toon');
+  if(t.includes('Spirit')) parts.push('Spirit');
+  if(t.includes('Union')) parts.push('Union');
+  if(t.includes('Gemini')) parts.push('Gemini');
+  if(t.includes('Tuner')) parts.push('Tuner');
+  if(t.includes('Flip')) parts.push('Flip');
+  if(t.includes('Pendulum')) parts.push('Pendulum');
+  if(t.includes('Token')) parts.push('Token');
+  if(!t.includes('Normal Monster') && !t.includes('Token')) parts.push('Effect');
+  else parts.push('Normal');
+  return parts;
+}
+
 function germanMonsterType(en){
-  const race=RACE_DE[en.race]||String(en.race||'MONSTER').toUpperCase();
-  const t=en.type||'';
-  let kind='EFFEKT';
-  if(t.includes('Normal Monster')) kind='';
-  else if(t.includes('Ritual')) kind='RITUAL / EFFEKT';
-  else if(t.includes('Fusion')) kind='FUSION / EFFEKT';
-  else if(t.includes('Synchro')) kind='SYNCHRO / EFFEKT';
-  else if(t.includes('Xyz')) kind='XYZ / EFFEKT';
-  else if(t.includes('Link')) kind='LINK / EFFEKT';
-  return kind ? `${race} / ${kind}` : race;
+  const raw = Array.isArray(en.typeline) && en.typeline.length ? en.typeline : fallbackTypeline(en);
+  const translated=[];
+  for(const token of raw){
+    const value = RACE_DE[token] ?? TYPELINE_DE[token] ?? String(token||'').toUpperCase();
+    if(value && !translated.includes(value)) translated.push(value);
+  }
+  return translated.join('/');
 }
 async function fetchJSON(url,options={}){
   const r=await fetch(url,{...options,signal:AbortSignal.timeout(30000)});
@@ -174,10 +200,19 @@ function rendererData(card,en,de,artwork){
     pendulumScale:0,pendulumDescription:'',monsterType:type==='monster'?germanMonsterType(en):'',
     atkBar:true,atk:Number.isFinite(en.atk)?en.atk:0,def:Number.isFinite(en.def)?en.def:0,
     arrowList:[],description:desc,descriptionAlign:false,
-    package:card.set||'',password:String(en.id||''),copyright:'en',laser:'',rare:'',
+    package:card.set||'',password:en.id ? String(en.id).padStart(8,'0') : '',copyright:'en',laser:'laser1',rare:'',
     twentieth:false,radius:true,scale:RENDER_SCALE,
     ...textFit
   };
+}
+
+function germanAttributeUrl(instance,en){
+  const base=`${ASSET_ROOT}/yugioh/image`;
+  const type=mainType(en);
+  if(type==='spell') return `${base}/attribute-spell-de.png`;
+  if(type==='trap') return `${base}/attribute-trap-de.png`;
+  const attr=String(en.attribute||'').toLowerCase();
+  return attr ? `${base}/attribute-${attr}-de.png` : '';
 }
 
 function pngFromExport(data){
@@ -186,13 +221,22 @@ function pngFromExport(data){
   if(!m) throw new Error('Renderer lieferte kein PNG.');
   return Buffer.from(m[1],'base64');
 }
-async function renderCard(card){
+async function renderCard(card,force=false){
   const k=cardKey(card);
+  if(force) renderCache.delete(k);
   if(renderCache.has(k)) return renderCache.get(k);
 
   const {en,de}=await getCard(card);
   const art=await artworkDataUrl(en);
   const instance=new YugiohCard({data:rendererData(card,en,de,art),resourcePath:ASSET_ROOT,skia});
+
+  // Der Renderer besitzt keine deutsche Sprachvariante für Attribut-Symbole.
+  // Wir erzeugen beim Build deutsche Varianten und überschreiben nur deren URL.
+  Object.defineProperty(instance,'attributeUrl',{
+    configurable:true,
+    get(){ return germanAttributeUrl(instance,en); }
+  });
+  instance.drawAttribute();
 
   if(mainType(en)==='spell'||mainType(en)==='trap'){
     Object.defineProperty(instance,'spellTrapName',{
@@ -275,7 +319,7 @@ async function commitCardsToGithub(cardBuffers){
 // ---------- Jobs ----------
 function publicJob(job){
   return {
-    id:job.id,state:job.state,progress:job.progress,label:job.label,error:job.error,
+    id:job.id,state:job.state,progress:job.progress,label:job.label,error:job.error,force:Boolean(job.force),rendererVersion:'v14',
     persisted:job.persisted,commitSha:job.commitSha,outputs:[...job.outputs.keys()],
     cards:[...job.cardStates.values()]
   };
@@ -291,7 +335,7 @@ async function runRenderJob(job,cards){
       job.cardStates.set(key,{key,name:c.de||c.en,state:'rendering'});
       patch(job,{progress:.04+(i/Math.max(1,cards.length))*.78,label:`Render ${i+1}/${cards.length}: ${c.de||c.en}`});
       try{
-        const png=await renderCard(c);
+        const png=await renderCard(c,Boolean(job.force));
         job.outputs.set(key,png);
         rendered.push({key,png});
         job.cardStates.set(key,{key,name:c.de||c.en,state:'done'});
@@ -356,7 +400,7 @@ app.get('/',async(req,res)=>{
   res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
   <body style="font-family:-apple-system;background:#0e1116;color:#fff;padding:24px">
   <h1>YGO Card Renderer</h1>
-  <p>Battle-Box Render-Service · 450 dpi · Feinheiten-Fix</p>
+  <p>Battle-Box Render-Service · 450 dpi · Final-Polish-Test</p>
   <p>Server: <b style="color:#63d69a">läuft</b></p>
   <p>GitHub: <b style="color:${ghColor}">${ghState.message}</b></p>
   <p>Deckbibliothek: <b>${library.decks?.length||0} Decks</b></p>
@@ -367,7 +411,7 @@ app.get('/health',async(req,res)=>{
   res.setHeader('Cache-Control','no-store');
   const ghState=await githubHealth();
   res.json({
-    ok:true,version:'0.13-monstertype-finetune',dpi:450,scale:RENDER_SCALE,
+    ok:true,version:'0.14-final-polish',dpi:450,scale:RENDER_SCALE,
     githubPersistence:ghState.status==='ok',
     githubStatus:ghState.status,
     githubWritable:ghState.writable,
@@ -402,6 +446,7 @@ app.post('/api/metadata',async(req,res)=>{
 
 app.post('/api/render',(req,res)=>{
   const cards=Array.isArray(req.body?.cards)?req.body.cards:[];
+  const force=Boolean(req.body?.force);
   if(!cards.length) return res.status(400).json({error:'Keine Karten übergeben.'});
   if(cards.length>100) return res.status(400).json({error:'Maximal 100 Karten pro Auftrag.'});
 
@@ -413,7 +458,7 @@ app.post('/api/render',(req,res)=>{
 
   const id=crypto.randomUUID();
   const job={id,state:'queued',progress:0,label:'Wartet …',error:null,persisted:false,commitSha:null,
-    outputs:new Map(),cardStates:new Map()};
+    force,outputs:new Map(),cardStates:new Map()};
   jobs.set(id,job);
   runRenderJob(job,clean);
   res.status(202).json({id});
@@ -441,4 +486,4 @@ setInterval(()=>{
   for(const id of ids.slice(0,Math.max(0,ids.length-12))) jobs.delete(id);
 },10*60*1000).unref();
 
-app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.13 listening on ${PORT}`));
+app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.14 listening on ${PORT}`));

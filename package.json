@@ -1,6 +1,6 @@
 {
-  "name": "yugioh-battlebox-render-poc",
-  "version": "0.1.0",
+  "name": "yugioh-battlebox-render-server",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "express": "^5.1.0",
-    "pdf-lib": "^1.17.1",
     "skia-canvas": "^2.0.2",
     "yugioh-card": "1.9.2"
   }

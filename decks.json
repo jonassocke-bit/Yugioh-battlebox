@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "assetConvention": "cards/<card.key-or-set>.png",
+  "decks": [
+    {
+      "id": "dragons-roar",
+      "name": "Dragon's Roar",
+      "category": "Structure Deck",
+      "era": "DM/GX",
+      "year": 2005,
+      "source": {
+        "label": "Structure Deck: Dragon's Roar",
+        "kind": "Offizielles TCG Structure Deck",
+        "year": 2005
+      },
+      "notes": "Deutsche SD1-Fassung. Mengen entsprechen dem Deckinhalt.",
+      "cards": [
+        {
+          "set": "SD1-DE001",
+          "en": "Red-Eyes Darkness Dragon",
+          "de": "Rotäugiger Finsterer Drache",
+          "type": "Monster",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE002",
+          "en": "Red-Eyes Black Dragon",
+          "de": "Rotäugiger schwarzer Drache",
+          "type": "Monster",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE003",
+          "en": "Luster Dragon",
+          "de": "Schimmerdrache",
+          "type": "Monster",
+          "qty": 2
+        },
+        {
+          "set": "SD1-DE004",
+          "en": "Twin-Headed Behemoth",
+          "de": "Zweiköpfiger Behemoth",
+          "type": "Monster",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE005",
+          "en": "Armed Dragon LV3",
+          "de": "Bewaffneter Drache LV3",
+          "type": "Monster",
+          "qty": 2
+        },
+        {
+          "set": "SD1-DE006",
+          "en": "Armed Dragon LV5",
+          "de": "Bewaffneter Drache LV5",
+          "type": "Monster",
+          "qty": 2
+        },
+        {
+          "set": "SD1-DE007",
+          "en": "Black Dragon's Chick",
+          "de": "Schwarzes Drachenküken",
+          "type": "Monster",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE008",
+          "en": "Element Dragon",
+          "de": "Elementardrache",
+          "type": "Monster",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE009",
+          "en": "Masked Dragon",
+          "de": "Maskierter Drache",
+          "type": "Monster",
+          "qty": 3
+        },
+        {
+          "set": "SD1-DE010",
+          "en": "Snatch Steal",
+          "de": "Schnappstahl",
+          "type": "Zauber",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE011",
+          "en": "Mystical Space Typhoon",
+          "de": "Mystischer Raum-Taifun",
+          "type": "Zauber",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE012",
+          "en": "Nobleman of Crossout",
+          "de": "Adliger der Auslöschung",
+          "type": "Zauber",
+          "qty": 2
+        },
+        {
+          "set": "SD1-DE013",
+          "en": "Premature Burial",
+          "de": "Voreiliges Begräbnis",
+          "type": "Zauber",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE014",
+          "en": "Swords of Revealing Light",
+          "de": "Verräterische Schwerter",
+          "type": "Zauber",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE015",
+          "en": "Pot of Greed",
+          "de": "Topf der Gier",
+          "type": "Zauber",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE016",
+          "en": "Heavy Storm",
+          "de": "Schwerer Sturm",
+          "type": "Zauber",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE017",
+          "en": "Stamping Destruction",
+          "de": "Stampfende Zerstörung",
+          "type": "Zauber",
+          "qty": 3
+        },
+        {
+          "set": "SD1-DE018",
+          "en": "Creature Swap",
+          "de": "Kreaturentausch",
+          "type": "Zauber",
+          "qty": 2
+        },
+        {
+          "set": "SD1-DE019",
+          "en": "Reload",
+          "de": "Nachladen",
+          "type": "Zauber",
+          "qty": 2
+        },
+        {
+          "set": "SD1-DE020",
+          "en": "The Graveyard in the Fourth Dimension",
+          "de": "Friedhof in der Vierten Dimension",
+          "type": "Zauber",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE021",
+          "en": "Call of the Haunted",
+          "de": "Ruf der Gejagten",
+          "type": "Falle",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE022",
+          "en": "Ceasefire",
+          "de": "Waffenstillstand",
+          "type": "Falle",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE023",
+          "en": "The Dragon's Bead",
+          "de": "Perle des Drachen",
+          "type": "Falle",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE024",
+          "en": "Dragon's Rage",
+          "de": "Drachenzorn",
+          "type": "Falle",
+          "qty": 2
+        },
+        {
+          "set": "SD1-DE025",
+          "en": "Reckless Greed",
+          "de": "Tollkühne Gier",
+          "type": "Falle",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE026",
+          "en": "Interdimensional Matter Transporter",
+          "de": "Interdimensionaler Materietransporter",
+          "type": "Falle",
+          "qty": 2
+        },
+        {
+          "set": "SD1-DE027",
+          "en": "Trap Jammer",
+          "de": "Fallenfalle",
+          "type": "Falle",
+          "qty": 1
+        },
+        {
+          "set": "SD1-DE028",
+          "en": "Curse of Anubis",
+          "de": "Fluch des Anubis",
+          "type": "Falle",
+          "qty": 1
+        }
+      ]
+    }
+  ]
+}

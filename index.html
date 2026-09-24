@@ -33,7 +33,7 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 </head>
 <body>
 <div class="app">
-  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.20</div>
+  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.21</div>
   <h1 id="deckTitle" class="title">Deck laden …</h1>
   <div id="deckSource" class="source"></div>
 
@@ -48,7 +48,7 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
       <span class="pill">Extra <b id="extraCount">–</b></span>
       <span class="pill">Unterschiedlich <b id="uniqueCount">–</b></span>
       <span class="pill">Verfügbar <b id="availableCount">–</b></span><span class="pill">GitHub <b id="archiveCount">–</b></span>
-      <span class="pill">Render <b>450 dpi</b></span><span class="pill">Kartenbild <b>randlos</b></span><span class="pill">PDF <b>dynamisch</b></span>
+      <span class="pill">Render <b>450 dpi</b></span><span class="pill">Kartenbild <b>randlos</b></span><span class="pill">PDF-DPI <b id="pdfDpiBadge">450</b></span><span class="pill">Pro Seite <b id="pdfPerPage">–</b></span><span class="pill">PDF-Seiten <b id="pdfPageCount">–</b></span>
       <span class="pill" id="serverPill">Server <b id="serverState">prüfen …</b></span>
       <span class="pill" id="tokenPill">GitHub-Token <b id="tokenState">prüfen …</b></span>
     </div>
@@ -62,6 +62,7 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
       <div><label>SCHNITTMARKEN</label><select id="marks"><option value="1">An</option><option value="0">Aus</option></select></div>
       <div><label>OVERLAY-BESCHNITT (MM)</label><input id="cropMm" type="number" min="0" max="2.5" step="0.1" inputmode="decimal" value="0"></div>
       <div><label>ABSTAND ZWISCHEN KARTEN (MM)</label><input id="spacingMm" type="number" min="0" max="6" step="0.1" inputmode="decimal" value="0.6"></div>
+      <div><label>PDF-DPI</label><input id="pdfDpi" type="number" min="72" max="450" step="1" inputmode="numeric" value="450"></div>
     </div>
 
     <div class="statusbar">
@@ -126,6 +127,7 @@ function savePrefs(){
   localStorage.setItem('ygo_marks',$('marks').value);
   localStorage.setItem('ygo_cropMm',$('cropMm').value);
   localStorage.setItem('ygo_spacingMm',$('spacingMm').value);
+  localStorage.setItem('ygo_pdfDpi',$('pdfDpi').value);
   if(currentDeck)localStorage.setItem('ygo_deck',currentDeck.id);
   if(currentDeck)localStorage.setItem('ygo_qty_'+currentDeck.id,JSON.stringify(quantities));
 }
@@ -150,6 +152,7 @@ function updateStats(){
   $('rerenderDeck').disabled=Boolean(activeJob) || !cards.length;
   $('clearArchive').disabled=Boolean(activeJob);
   $('rerenderDeck').textContent=cards.length?`${cards.length} Karten neu rendern`:'Deck komplett neu rendern';
+  updatePdfMetrics();
 }
 
 async function existsLocal(card,bust=false){
@@ -413,32 +416,40 @@ function clampNum(v,min,max,fb){
   if(!Number.isFinite(v)) return fb;
   return Math.max(min,Math.min(max,v));
 }
+function mmToPx(mm,dpi){ return Math.max(1,Math.round((mm/25.4)*dpi)); }
 function cropPxForMm(img,cropMm){
   return {
     x:Math.round(img.width*(cropMm/59)),
     y:Math.round(img.height*(cropMm/86))
   };
 }
-async function preparePdfImage(dataUrl,cropMm){
-  if(!(cropMm>0)) return dataUrl;
+async function preparePdfImage(dataUrl,cropMm,targetDpi=450){
   const img=await loadImage(dataUrl);
   const crop=cropPxForMm(img,cropMm);
   const sw=Math.max(1,img.width-crop.x*2);
   const sh=Math.max(1,img.height-crop.y*2);
+
+  const targetW=mmToPx(59-(cropMm*2),targetDpi);
+  const targetH=mmToPx(86-(cropMm*2),targetDpi);
+
+  if(!(cropMm>0) && img.width===targetW && img.height===targetH) return dataUrl;
+
   const canvas=document.createElement('canvas');
-  canvas.width=sw;
-  canvas.height=sh;
+  canvas.width=targetW;
+  canvas.height=targetH;
   const ctx=canvas.getContext('2d');
-  ctx.drawImage(img,crop.x,crop.y,sw,sh,0,0,sw,sh);
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(img,crop.x,crop.y,sw,sh,0,0,targetW,targetH);
   return canvas.toDataURL('image/png');
 }
-async function cardData(c,cropMm=0){
+async function cardData(c,cropMm=0,targetDpi=450){
   const k=keyOf(c);
   const url=assetState.get(k)?.state==='temp'?tempSources.get(k):localUrl(c);
   const r=await fetch(url,{cache:'force-cache'});
   if(!r.ok)throw Error(`${c.de||c.en}: Bild konnte nicht geladen werden.`);
   const dataUrl=await blobToDataURL(await r.blob());
-  return await preparePdfImage(dataUrl,cropMm);
+  return await preparePdfImage(dataUrl,cropMm,targetDpi);
 }
 function computeSheetLayout(page,cropMm,spacingMm){
   const cardW=59-(cropMm*2);
@@ -459,6 +470,24 @@ function computeSheetLayout(page,cropMm,spacingMm){
   const sx=marginX+((usableW-gridW)/2);
   const sy=marginTop+headerH+headerGap+((usableH-gridH)/2);
   return {cardW,cardH,marginX,marginTop,headerH,headerGap,marginBottom,usableW,usableH,cols,rows,cap,gridW,gridH,sx,sy};
+}
+function updatePdfMetrics(){
+  try{
+    const cropMm=clampNum($('cropMm').value,0,2.5,0);
+    const spacingMm=clampNum($('spacingMm').value,0,6,0.6);
+    const pdfDpi=clampNum($('pdfDpi').value,72,450,450);
+    const page=layouts[$('layout').value];
+    const layout=computeSheetLayout(page,cropMm,spacingMm);
+    const total=copies().length;
+    const pages=total?Math.ceil(total/layout.cap):0;
+    $('pdfDpiBadge').textContent=String(pdfDpi);
+    $('pdfPerPage').textContent=`${layout.cap} (${layout.cols}×${layout.rows})`;
+    $('pdfPageCount').textContent=String(pages);
+  }catch{
+    $('pdfDpiBadge').textContent='–';
+    $('pdfPerPage').textContent='–';
+    $('pdfPageCount').textContent='–';
+  }
 }
 function drawPageHeader(doc,pageLabel,pageNo,pageCount,cropMm,spacingMm){
   const deckName=currentDeck?.name||'Deck';
@@ -564,8 +593,11 @@ async function makePdf(){
 
   const cropMm=clampNum($('cropMm').value,0,2.5,0);
   const spacingMm=clampNum($('spacingMm').value,0,6,0.6);
+  const pdfDpi=clampNum($('pdfDpi').value,72,450,450);
   $('cropMm').value=cropMm.toFixed(1);
   $('spacingMm').value=spacingMm.toFixed(1);
+  $('pdfDpi').value=String(Math.round(pdfDpi));
+  savePrefs();
 
   const all=copies(),page=layouts[$('layout').value],{jsPDF}=window.jspdf;
   const layout=computeSheetLayout(page,cropMm,spacingMm);
@@ -579,9 +611,9 @@ async function makePdf(){
     drawPageHeader(doc,page,p+1,pages,cropMm,spacingMm);
     const chunk=all.slice(p*layout.cap,(p+1)*layout.cap);
     for(let i=0;i<chunk.length;i++){
-      const c=chunk[i],k=keyOf(c),cacheKey=`${k}__crop_${cropMm.toFixed(1)}`;
+      const c=chunk[i],k=keyOf(c),cacheKey=`${k}__crop_${cropMm.toFixed(1)}__dpi_${Math.round(pdfDpi)}`;
       setProgress((p*layout.cap+i)/all.length,`PDF · Karte ${p*layout.cap+i+1}/${all.length}: ${c.de||c.en}`);
-      if(!cache.has(cacheKey))cache.set(cacheKey,await cardData(c,cropMm));
+      if(!cache.has(cacheKey))cache.set(cacheKey,await cardData(c,cropMm,pdfDpi));
       const row=Math.floor(i/layout.cols),col=i%layout.cols;
       const x=layout.sx+col*(layout.cardW+spacingMm);
       const y=layout.sy+row*(layout.cardH+spacingMm);
@@ -591,7 +623,7 @@ async function makePdf(){
   }
 
   setProgress(.98,'PDF wird vorbereitet …');
-  const filename=`${currentDeck.id}_${$('layout').value}_crop-${cropMm.toFixed(1)}mm_gap-${spacingMm.toFixed(1)}mm_450dpi.pdf`;
+  const filename=`${currentDeck.id}_${$('layout').value}_crop-${cropMm.toFixed(1)}mm_gap-${spacingMm.toFixed(1)}mm_${Math.round(pdfDpi)}dpi.pdf`;
   const blob=doc.output('blob');
   if(pdfBlobUrl)URL.revokeObjectURL(pdfBlobUrl);
   pdfBlobUrl=URL.createObjectURL(blob);
@@ -600,8 +632,9 @@ async function makePdf(){
   link.download=filename;
   link.classList.add('show');
   link.textContent='PDF öffnen / herunterladen';
-  setProgress(1,`PDF fertig · ${layout.cols}×${layout.rows} Karten pro Seite · unten auf „PDF öffnen / herunterladen“ tippen`);
-  toast(`PDF ist fertig. ${layout.cols}×${layout.rows} Karten pro Seite. Über den neuen Button kannst du sie öffnen bzw. auf dem iPhone speichern.`,6500);
+  setProgress(1,`PDF fertig · ${layout.cols}×${layout.rows} Karten pro Seite · ${pages} Seite(n) · ${Math.round(pdfDpi)} dpi`);
+  toast(`PDF ist fertig. ${layout.cols}×${layout.rows} Karten pro Seite · ${pages} Seite(n) · ${Math.round(pdfDpi)} dpi. Über den neuen Button kannst du sie öffnen bzw. auf dem iPhone speichern.`,6500);
+  updatePdfMetrics();
 }
 
 async function checkServerHealth(){
@@ -649,9 +682,10 @@ async function init(){
   $('marks').value=localStorage.getItem('ygo_marks')||'1';
   $('cropMm').value=localStorage.getItem('ygo_cropMm')||'0.0';
   $('spacingMm').value=localStorage.getItem('ygo_spacingMm')||'0.6';
-  const pdfInputs=['layout','marks','cropMm','spacingMm'];
-  pdfInputs.forEach(id=>$(id).onchange=()=>{savePrefs();$('pdfDownload').classList.remove('show')});
-  pdfInputs.forEach(id=>$(id).oninput=()=>{$('pdfDownload').classList.remove('show')});
+  $('pdfDpi').value=localStorage.getItem('ygo_pdfDpi')||'450';
+  const pdfInputs=['layout','marks','cropMm','spacingMm','pdfDpi'];
+  pdfInputs.forEach(id=>$(id).onchange=()=>{savePrefs();$('pdfDownload').classList.remove('show');updatePdfMetrics()});
+  pdfInputs.forEach(id=>$(id).oninput=()=>{$('pdfDownload').classList.remove('show');updatePdfMetrics()});
   $('viewer').onclick=closeViewer;
   $('deckPicker').onclick=openPicker;$('sheetBg').onclick=closePicker;$('deckSearch').oninput=renderDeckItems;
   $('search').oninput=renderCardList;$('renderMissing').onclick=()=>startRender(false);$('rerenderDeck').onclick=()=>startRender(true);$('clearArchive').onclick=clearArchive;$('makePdf').onclick=makePdf;

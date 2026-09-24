@@ -600,7 +600,7 @@ app.get('/',async(req,res)=>{
   res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
   <body style="font-family:-apple-system;background:#0e1116;color:#fff;padding:24px">
   <h1>YGO Card Renderer</h1>
-  <p>Battle-Box Render-Service · 450 dpi · Renderer v0.20</p>
+  <p>Battle-Box Render-Service · 450 dpi · Renderer v0.21</p>
   <p>Server: <b style="color:#63d69a">läuft</b></p>
   <p>GitHub: <b style="color:${ghColor}">${ghState.message}</b></p>
   <p>Deckbibliothek: <b>${library.decks?.length||0} Decks</b></p>
@@ -611,7 +611,7 @@ app.get('/health',async(req,res)=>{
   res.setHeader('Cache-Control','no-store');
   const ghState=await githubHealth();
   res.json({
-    ok:true,version:'0.20-dynamic-overlay-spacing',dpi:450,scale:RENDER_SCALE,
+    ok:true,version:'0.21-pdf-dpi-sheetinfo',dpi:450,scale:RENDER_SCALE,
     githubPersistence:ghState.status==='ok',
     githubStatus:ghState.status,
     githubWritable:ghState.writable,
@@ -624,7 +624,8 @@ app.get('/health',async(req,res)=>{
     descriptionFit:'uniform-scale-v2',
     borderlessCards:true,
     dynamicPdfLayout:true,
-    overlayCropMm:'0.0-2.5'
+    overlayCropMm:'0.0-2.5',
+    pdfDpi:'72-450'
   });
 });
 
@@ -722,4 +723,4 @@ setInterval(()=>{
   for(const id of ids.slice(0,Math.max(0,ids.length-12))) jobs.delete(id);
 },10*60*1000).unref();
 
-app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.20 listening on ${PORT}`));
+app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.21 listening on ${PORT}`));

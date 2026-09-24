@@ -180,3 +180,18 @@ Formate:
 Empfehlung für dein Overlay-Ziel:
 - Beschnitt zunächst mit **2,0 mm**
 - Abstand z. B. **0,8–1,2 mm**
+
+
+## v0.21 – PDF-DPI + Seiteninfo
+
+Neu:
+- **PDF-DPI** frei einstellbar (72–450), ohne Neurendern
+- Das bestehende Karten-PNG wird beim PDF-Export nur **neu skaliert**
+- Live-Anzeige in der Oberfläche:
+  - **Karten pro Seite**
+  - **Spalten × Reihen**
+  - **PDF-Seitenanzahl**
+
+Wichtig:
+- 450 dpi bleibt die Obergrenze, weil das Kartenarchiv in dieser Qualität vorliegt
+- z. B. 300 dpi spart Dateigröße und Rechenzeit beim PDF-Export

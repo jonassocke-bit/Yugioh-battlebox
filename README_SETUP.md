@@ -195,3 +195,16 @@ Neu:
 Wichtig:
 - 450 dpi bleibt die Obergrenze, weil das Kartenarchiv in dieser Qualität vorliegt
 - z. B. 300 dpi spart Dateigröße und Rechenzeit beim PDF-Export
+
+
+## v0.22 – Vollständige Kartenrender wiederhergestellt
+
+Fix:
+- neue Karten werden wieder als **vollständige Karten-PNGs** gerendert
+- der äußere graue / dunkle Kartenrand bleibt vollständig erhalten
+- nur der **PDF-Export** darf weiterhin per Overlay-Beschnitt zuschneiden
+
+Wichtig:
+- bereits fehlerhaft gerenderte Karten im `cards/`-Ordner bleiben fehlerhaft
+- diese Karten müssen **neu gerendert** werden
+- wenn du ganz sicher gehen willst, kannst du das Archiv leeren und die betroffenen Decks neu rendern

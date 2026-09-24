@@ -354,22 +354,6 @@ function pngFromExport(data){
   if(!m) throw new Error('Renderer lieferte kein PNG.');
   return Buffer.from(m[1],'base64');
 }
-
-async function removeOuterRenderBorder(pngBuffer){
-  const img=await skia.loadImage(pngBuffer);
-  const trimX=Math.round(img.width*0.020);
-  const trimTop=Math.round(img.height*0.015);
-  const trimBottom=Math.round(img.height*0.017);
-  const sw=img.width-trimX*2;
-  const sh=img.height-trimTop-trimBottom;
-
-  const canvas=new skia.Canvas(sw,sh);
-  const ctx=canvas.getContext('2d');
-  ctx.drawImage(img,trimX,trimTop,sw,sh,0,0,sw,sh);
-
-  const out=await canvas.png;
-  return Buffer.isBuffer(out) ? out : Buffer.from(out);
-}
 async function renderCard(card,force=false){
   const k=cardKey(card);
   if(force) renderCache.delete(k);
@@ -392,8 +376,7 @@ async function renderCard(card,force=false){
   try{
     const out=await instance.leafer.export('png',{screenshot:true});
     if(!out||out.error) throw new Error(out?.error?.message||'Renderer-Export fehlgeschlagen.');
-    const rawPng=pngFromExport(out.data);
-    const png=await removeOuterRenderBorder(rawPng);
+    const png=pngFromExport(out.data);
     renderCache.set(k,png);
     return png;
   }finally{
@@ -600,7 +583,7 @@ app.get('/',async(req,res)=>{
   res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
   <body style="font-family:-apple-system;background:#0e1116;color:#fff;padding:24px">
   <h1>YGO Card Renderer</h1>
-  <p>Battle-Box Render-Service · 450 dpi · Renderer v0.21</p>
+  <p>Battle-Box Render-Service · 450 dpi · Renderer v0.22</p>
   <p>Server: <b style="color:#63d69a">läuft</b></p>
   <p>GitHub: <b style="color:${ghColor}">${ghState.message}</b></p>
   <p>Deckbibliothek: <b>${library.decks?.length||0} Decks</b></p>
@@ -611,7 +594,7 @@ app.get('/health',async(req,res)=>{
   res.setHeader('Cache-Control','no-store');
   const ghState=await githubHealth();
   res.json({
-    ok:true,version:'0.21-pdf-dpi-sheetinfo',dpi:450,scale:RENDER_SCALE,
+    ok:true,version:'0.22-fullcard-render',dpi:450,scale:RENDER_SCALE,
     githubPersistence:ghState.status==='ok',
     githubStatus:ghState.status,
     githubWritable:ghState.writable,
@@ -622,7 +605,7 @@ app.get('/health',async(req,res)=>{
     forcedHologram:true,
     germanAttributesAvailable:fsSync.existsSync(`${ASSET_ROOT}/yugioh/image/attribute-fire-de.png`),
     descriptionFit:'uniform-scale-v2',
-    borderlessCards:true,
+    fullCardRender:true,
     dynamicPdfLayout:true,
     overlayCropMm:'0.0-2.5',
     pdfDpi:'72-450'
@@ -723,4 +706,4 @@ setInterval(()=>{
   for(const id of ids.slice(0,Math.max(0,ids.length-12))) jobs.delete(id);
 },10*60*1000).unref();
 
-app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.21 listening on ${PORT}`));
+app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.22 listening on ${PORT}`));

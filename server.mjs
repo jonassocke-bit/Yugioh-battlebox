@@ -223,6 +223,32 @@ function germanAttributeUrl(en){
   return `${base}/attribute-${key}-en.png`;
 }
 
+function splitGermanEffectSentences(part){
+  const DOT='\uE000';
+
+  // Häufige Abkürzungen in Kartentexten schützen, damit z. B.
+  // "max. 3" nicht als neuer Satz behandelt wird.
+  let protectedText=String(part);
+
+  protectedText=protectedText.replace(
+    /\b(max|min|mind|bzw|usw|ca|ggf|Nr|St)\./giu,
+    (_,word)=>`${word}${DOT}`
+  );
+
+  // Mehrteilige deutsche Abkürzungen.
+  protectedText=protectedText
+    .replace(/\bz\.\s*B\./giu,`z${DOT} B${DOT}`)
+    .replace(/\bd\.\s*h\./giu,`d${DOT} h${DOT}`)
+    .replace(/\bu\.\s*a\./giu,`u${DOT} a${DOT}`);
+
+  const parts=protectedText
+    .split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ0-9„"'])/u)
+    .filter(Boolean)
+    .map(s=>s.replaceAll(DOT,'.'));
+
+  return parts;
+}
+
 function formatGermanDescription(desc,en){
   let text=String(desc||'')
     .replace(/\r\n?/g,'\n')
@@ -236,7 +262,7 @@ function formatGermanDescription(desc,en){
   if(!isNormal && text.length>=155){
     const paragraphs=text.split('\n').flatMap(part=>{
       if(part.length<135) return [part];
-      const sentences=part.split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ0-9„"'])/u).filter(Boolean);
+      const sentences=splitGermanEffectSentences(part);
       return sentences.length>1 ? sentences : [part];
     });
     text=paragraphs.join('\n');
@@ -274,7 +300,7 @@ function applyReliableCardPolish(instance,en,de){
 
   let effectHeight=0;
   if(type==='monster' && instance.effectLeaf){
-    const typeFontSize=style.effect.fontSize*0.80;
+    const typeFontSize=style.effect.fontSize*0.85;
     effectHeight=typeFontSize*(style.effect.lineHeight||1);
     instance.effectLeaf.set({
       fontSize:typeFontSize,
@@ -286,7 +312,7 @@ function applyReliableCardPolish(instance,en,de){
     const desc=formatGermanDescription(de.desc||en.desc||'',en);
     const hasEffectLine=type==='monster' && Boolean(instance.data.monsterType);
     if(type==='monster' && !effectHeight && hasEffectLine){
-      effectHeight=style.effect.fontSize*0.80*(style.effect.lineHeight||1);
+      effectHeight=style.effect.fontSize*0.85*(style.effect.lineHeight||1);
     }
 
     let height=385;
@@ -328,6 +354,22 @@ function pngFromExport(data){
   if(!m) throw new Error('Renderer lieferte kein PNG.');
   return Buffer.from(m[1],'base64');
 }
+
+async function removeOuterRenderBorder(pngBuffer){
+  const img=await skia.loadImage(pngBuffer);
+  const trimX=Math.round(img.width*0.020);
+  const trimTop=Math.round(img.height*0.015);
+  const trimBottom=Math.round(img.height*0.017);
+  const sw=img.width-trimX*2;
+  const sh=img.height-trimTop-trimBottom;
+
+  const canvas=new skia.Canvas(sw,sh);
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(img,trimX,trimTop,sw,sh,0,0,sw,sh);
+
+  const out=await canvas.png;
+  return Buffer.isBuffer(out) ? out : Buffer.from(out);
+}
 async function renderCard(card,force=false){
   const k=cardKey(card);
   if(force) renderCache.delete(k);
@@ -350,7 +392,8 @@ async function renderCard(card,force=false){
   try{
     const out=await instance.leafer.export('png',{screenshot:true});
     if(!out||out.error) throw new Error(out?.error?.message||'Renderer-Export fehlgeschlagen.');
-    const png=pngFromExport(out.data);
+    const rawPng=pngFromExport(out.data);
+    const png=await removeOuterRenderBorder(rawPng);
     renderCache.set(k,png);
     return png;
   }finally{
@@ -557,7 +600,7 @@ app.get('/',async(req,res)=>{
   res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
   <body style="font-family:-apple-system;background:#0e1116;color:#fff;padding:24px">
   <h1>YGO Card Renderer</h1>
-  <p>Battle-Box Render-Service · 450 dpi · Renderer v0.16</p>
+  <p>Battle-Box Render-Service · 450 dpi · Renderer v0.20</p>
   <p>Server: <b style="color:#63d69a">läuft</b></p>
   <p>GitHub: <b style="color:${ghColor}">${ghState.message}</b></p>
   <p>Deckbibliothek: <b>${library.decks?.length||0} Decks</b></p>
@@ -568,17 +611,20 @@ app.get('/health',async(req,res)=>{
   res.setHeader('Cache-Control','no-store');
   const ghState=await githubHealth();
   res.json({
-    ok:true,version:'0.16-reliable-render',dpi:450,scale:RENDER_SCALE,
+    ok:true,version:'0.20-dynamic-overlay-spacing',dpi:450,scale:RENDER_SCALE,
     githubPersistence:ghState.status==='ok',
     githubStatus:ghState.status,
     githubWritable:ghState.writable,
     githubMessage:ghState.message,
     repo:GITHUB_REPO,branch:GITHUB_BRANCH,
     libraryDecks:library.decks?.length||0,
-    typeLineScale:0.80,
+    typeLineScale:0.85,
     forcedHologram:true,
     germanAttributesAvailable:fsSync.existsSync(`${ASSET_ROOT}/yugioh/image/attribute-fire-de.png`),
-    descriptionFit:'uniform-scale-v2'
+    descriptionFit:'uniform-scale-v2',
+    borderlessCards:true,
+    dynamicPdfLayout:true,
+    overlayCropMm:'0.0-2.5'
   });
 });
 
@@ -676,4 +722,4 @@ setInterval(()=>{
   for(const id of ids.slice(0,Math.max(0,ids.length-12))) jobs.delete(id);
 },10*60*1000).unref();
 
-app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.16 listening on ${PORT}`));
+app.listen(PORT,'0.0.0.0',()=>console.log(`YGO renderer v0.20 listening on ${PORT}`));

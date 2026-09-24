@@ -108,3 +108,75 @@ Vor dem kompletten Leeren des Archivs:
 2. ein Deck komplett neu rendern
 3. lange Texte, Typzeile, Attribut und Hologramm kontrollieren
 4. erst dann Kartenarchiv leeren
+
+## v0.17 – Abkürzungen + Monstertyp
+
+- Monstertyp-Zeile von 80 % auf **85 %** angehoben
+- automatische Satzumbrüche ignorieren jetzt typische Abkürzungen, u. a.:
+  `max.`, `min.`, `mind.`, `bzw.`, `usw.`, `ca.`, `ggf.`, `Nr.`, `St.`,
+  `z. B.`, `d. h.` und `u. a.`
+- dadurch kein falscher Umbruch mehr bei Texten wie `max. 3`
+
+## v0.18 – A4 + randloser PDF-Export
+
+Neu im PDF-Export:
+- zusätzliches Layout **A4 · 9/Bogen**
+- neue Exportoption **Kartenrand**
+  - **Mit äußerem grauen Rand**
+  - **Ohne äußeren grauen Rand**
+
+Bei der randlosen Variante wird beim PDF-Export nur der äußere bläulich-graue
+Sicherheits-/Glowe-Rand der Render-PNG abgeschnitten. Der eigentliche
+Yu-Gi-Oh!-Kartenrahmen bleibt erhalten.
+
+Wichtig:
+- das betrifft **nur den PDF-Export**
+- die gespeicherten PNGs in `cards/` bleiben unverändert
+
+
+## v0.19 – Kartenbilder selbst randlos
+
+Wichtige Änderung:
+- der **Renderer selbst** schneidet jetzt den äußeren bläulich-grauen Render-Rand ab
+- dadurch sind die gespeicherten PNGs unter `cards/` bereits randlos
+- Vorschau, Vollbildansicht **und** PDF nutzen damit dieselben randlosen Kartenbilder
+
+Hinweis:
+- bereits vorhandene Karten im `cards/`-Ordner bleiben so, wie sie gerendert wurden
+- damit alle Karten wirklich randlos sind, müssen die betroffenen Karten **neu gerendert** werden
+- am saubersten: erst mit einem Deck testen, danach bei Bedarf **Kartenarchiv leeren** und neu aufbauen
+
+Die frühere PDF-Option wurde deshalb sprachlich angepasst:
+- **Wie Kartenbild** = keine zusätzliche Beschneidung
+- **Zusätzlich enger beschneiden** = beschneidet die PDF noch etwas stärker
+
+## v0.20 – Dynamischer Overlay-Export
+
+Die Druckbögen reagieren jetzt dynamisch auf zwei neue Layout-Parameter:
+
+- **Overlay-Beschnitt (0,0–2,5 mm)**  
+  Schneidet das bereits vorhandene Karten-PNG für den PDF-Export innen zu.
+  Es wird **nicht neu gerendert**.
+
+- **Abstand zwischen Karten (mm)**  
+  Fügt frei wählbaren Weißraum zwischen den Karten ein.
+
+Wichtig:
+- Die bestehenden PNGs in `cards/` bleiben unverändert.
+- Der PDF-Export berechnet daraus dynamisch:
+  - die physische Kartengröße auf dem Bogen
+  - wie viele Karten auf die Seite passen
+  - die Positionen mit einem festen Mindestrand
+- Auf jeder PDF-Seite steht oben:
+  - **Deckname**
+  - **Seite X / Y**
+  - sowie klein Format, Beschnitt und Abstand
+
+Formate:
+- **A3**
+- **A4**
+- **SRA3**
+
+Empfehlung für dein Overlay-Ziel:
+- Beschnitt zunächst mit **2,0 mm**
+- Abstand z. B. **0,8–1,2 mm**

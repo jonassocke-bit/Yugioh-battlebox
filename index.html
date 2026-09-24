@@ -33,7 +33,7 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 </head>
 <body>
 <div class="app">
-  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.16</div>
+  <div class="kicker">CLASSIC BATTLE BOX · LIBRARY V0.20</div>
   <h1 id="deckTitle" class="title">Deck laden …</h1>
   <div id="deckSource" class="source"></div>
 
@@ -48,18 +48,20 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
       <span class="pill">Extra <b id="extraCount">–</b></span>
       <span class="pill">Unterschiedlich <b id="uniqueCount">–</b></span>
       <span class="pill">Verfügbar <b id="availableCount">–</b></span><span class="pill">GitHub <b id="archiveCount">–</b></span>
-      <span class="pill">Render <b>450 dpi</b></span>
+      <span class="pill">Render <b>450 dpi</b></span><span class="pill">Kartenbild <b>randlos</b></span><span class="pill">PDF <b>dynamisch</b></span>
       <span class="pill" id="serverPill">Server <b id="serverState">prüfen …</b></span>
       <span class="pill" id="tokenPill">GitHub-Token <b id="tokenState">prüfen …</b></span>
     </div>
 
     <div class="controls">
       <div><label>DRUCKFORMAT</label><select id="layout">
-        <option value="a3safe">A3 sicher · 18/Bogen</option>
-        <option value="a3tight">A3 maximal · 21/Bogen</option>
-        <option value="sra3">SRA3 · 25/Bogen</option>
+        <option value="a3">A3</option>
+        <option value="a4">A4</option>
+        <option value="sra3">SRA3</option>
       </select></div>
       <div><label>SCHNITTMARKEN</label><select id="marks"><option value="1">An</option><option value="0">Aus</option></select></div>
+      <div><label>OVERLAY-BESCHNITT (MM)</label><input id="cropMm" type="number" min="0" max="2.5" step="0.1" inputmode="decimal" value="0"></div>
+      <div><label>ABSTAND ZWISCHEN KARTEN (MM)</label><input id="spacingMm" type="number" min="0" max="6" step="0.1" inputmode="decimal" value="0.6"></div>
     </div>
 
     <div class="statusbar">
@@ -97,9 +99,9 @@ body{min-height:100vh}.app{max-width:880px;margin:auto;padding:calc(env(safe-are
 <script>
 const RENDER_SERVER='https://yugioh-battlebox.onrender.com';
 const layouts={
-  a3safe:{w:420,h:297,cols:6,rows:3,label:'A3 sicher'},
-  a3tight:{w:420,h:297,cols:7,rows:3,label:'A3 maximal'},
-  sra3:{w:320,h:450,cols:5,rows:5,label:'SRA3'}
+  a3:{w:420,h:297,label:'A3'},
+  a4:{w:210,h:297,label:'A4'},
+  sra3:{w:320,h:450,label:'SRA3'}
 };
 let library=null,currentDeck=null,quantities={},assetState=new Map(),tempSources=new Map(),activeJob=null,pollTimer=null,pdfBlobUrl=null;
 const SESSION_ASSET_REV=Date.now().toString(36);
@@ -122,6 +124,8 @@ function setProgress(p,label){p=Math.max(0,Math.min(1,Number(p)||0));$('progress
 function savePrefs(){
   localStorage.setItem('ygo_layout',$('layout').value);
   localStorage.setItem('ygo_marks',$('marks').value);
+  localStorage.setItem('ygo_cropMm',$('cropMm').value);
+  localStorage.setItem('ygo_spacingMm',$('spacingMm').value);
   if(currentDeck)localStorage.setItem('ygo_deck',currentDeck.id);
   if(currentDeck)localStorage.setItem('ygo_qty_'+currentDeck.id,JSON.stringify(quantities));
 }
@@ -403,26 +407,98 @@ async function pollJob(id){
 }
 
 function blobToDataURL(blob){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(blob)})}
-async function cardData(c){
+function loadImage(src){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>res(img);img.onerror=rej;img.src=src})}
+function clampNum(v,min,max,fb){
+  v=Number(String(v).replace(',','.'));
+  if(!Number.isFinite(v)) return fb;
+  return Math.max(min,Math.min(max,v));
+}
+function cropPxForMm(img,cropMm){
+  return {
+    x:Math.round(img.width*(cropMm/59)),
+    y:Math.round(img.height*(cropMm/86))
+  };
+}
+async function preparePdfImage(dataUrl,cropMm){
+  if(!(cropMm>0)) return dataUrl;
+  const img=await loadImage(dataUrl);
+  const crop=cropPxForMm(img,cropMm);
+  const sw=Math.max(1,img.width-crop.x*2);
+  const sh=Math.max(1,img.height-crop.y*2);
+  const canvas=document.createElement('canvas');
+  canvas.width=sw;
+  canvas.height=sh;
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(img,crop.x,crop.y,sw,sh,0,0,sw,sh);
+  return canvas.toDataURL('image/png');
+}
+async function cardData(c,cropMm=0){
   const k=keyOf(c);
   const url=assetState.get(k)?.state==='temp'?tempSources.get(k):localUrl(c);
   const r=await fetch(url,{cache:'force-cache'});
   if(!r.ok)throw Error(`${c.de||c.en}: Bild konnte nicht geladen werden.`);
-  return await blobToDataURL(await r.blob());
+  const dataUrl=await blobToDataURL(await r.blob());
+  return await preparePdfImage(dataUrl,cropMm);
 }
-function drawMarks(doc,cfg,sx,sy,cw,ch){
+function computeSheetLayout(page,cropMm,spacingMm){
+  const cardW=59-(cropMm*2);
+  const cardH=86-(cropMm*2);
+  if(cardW<=0||cardH<=0) throw new Error('Beschnitt ist zu groß.');
+  const marginX=6;
+  const marginTop=6;
+  const headerH=8;
+  const headerGap=3;
+  const marginBottom=6;
+  const usableW=page.w-(marginX*2);
+  const usableH=page.h-marginTop-headerH-headerGap-marginBottom;
+  const cols=Math.max(1,Math.floor((usableW+spacingMm)/(cardW+spacingMm)));
+  const rows=Math.max(1,Math.floor((usableH+spacingMm)/(cardH+spacingMm)));
+  const cap=cols*rows;
+  const gridW=(cols*cardW)+((cols-1)*spacingMm);
+  const gridH=(rows*cardH)+((rows-1)*spacingMm);
+  const sx=marginX+((usableW-gridW)/2);
+  const sy=marginTop+headerH+headerGap+((usableH-gridH)/2);
+  return {cardW,cardH,marginX,marginTop,headerH,headerGap,marginBottom,usableW,usableH,cols,rows,cap,gridW,gridH,sx,sy};
+}
+function drawPageHeader(doc,pageLabel,pageNo,pageCount,cropMm,spacingMm){
+  const deckName=currentDeck?.name||'Deck';
+  const meta=sourceText(currentDeck||{});
+  doc.setTextColor(40,40,40);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.text(deckName,6,8);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8.5);
+  doc.text(`Seite ${pageNo} / ${pageCount}`, pageLabel.w-6, 8, {align:'right'});
+  doc.setFontSize(7.4);
+  const leftLine=[meta, `Format: ${pageLabel.label}`, `Beschnitt: ${cropMm.toFixed(1)} mm`, `Abstand: ${spacingMm.toFixed(1)} mm`].filter(Boolean).join(' · ');
+  doc.text(leftLine,6,12.2);
+  doc.setLineWidth(.1);
+  doc.line(6,14,pageLabel.w-6,14);
+}
+function drawMarks(doc,layout,spacingMm){
   if($('marks').value!=='1')return;
   const gap=.7,mark=2;
   doc.setLineWidth(.08);
-  for(let i=0;i<=cfg.cols;i++){
-    const x=sx+i*cw;
-    doc.line(x,sy-gap-mark,x,sy-gap);
-    doc.line(x,sy+cfg.rows*ch+gap,x,sy+cfg.rows*ch+gap+mark);
+  const xs=[], ys=[];
+  for(let c=0;c<layout.cols;c++){
+    const x=layout.sx+c*(layout.cardW+spacingMm);
+    xs.push(x, x+layout.cardW);
   }
-  for(let i=0;i<=cfg.rows;i++){
-    const y=sy+i*ch;
-    doc.line(sx-gap-mark,y,sx-gap,y);
-    doc.line(sx+cfg.cols*cw+gap,y,sx+cfg.cols*cw+gap+mark,y);
+  for(let r=0;r<layout.rows;r++){
+    const y=layout.sy+r*(layout.cardH+spacingMm);
+    ys.push(y, y+layout.cardH);
+  }
+  const ux=[...new Set(xs.map(v=>v.toFixed(3)))].map(Number).sort((a,b)=>a-b);
+  const uy=[...new Set(ys.map(v=>v.toFixed(3)))].map(Number).sort((a,b)=>a-b);
+
+  for(const x of ux){
+    doc.line(x,layout.sy-gap-mark,x,layout.sy-gap);
+    doc.line(x,layout.sy+layout.gridH+gap,x,layout.sy+layout.gridH+gap+mark);
+  }
+  for(const y of uy){
+    doc.line(layout.sx-gap-mark,y,layout.sx-gap,y);
+    doc.line(layout.sx+layout.gridW+gap,y,layout.sx+layout.gridW+gap+mark,y);
   }
 }
 
@@ -485,27 +561,37 @@ async function clearArchive(){
 async function makePdf(){
   const cards=currentCards();
   if(cards.some(c=>!['ok','temp'].includes(assetState.get(keyOf(c))?.state)))return toast('Es fehlen noch Kartenbilder.');
-  const all=copies(),cfg=layouts[$('layout').value],{jsPDF}=window.jspdf;
-  const orientation=cfg.w>cfg.h?'landscape':'portrait';
-  const doc=new jsPDF({orientation,unit:'mm',format:[cfg.w,cfg.h],compress:true});
-  const cw=59,ch=86,cap=cfg.cols*cfg.rows,pages=Math.ceil(all.length/cap);
+
+  const cropMm=clampNum($('cropMm').value,0,2.5,0);
+  const spacingMm=clampNum($('spacingMm').value,0,6,0.6);
+  $('cropMm').value=cropMm.toFixed(1);
+  $('spacingMm').value=spacingMm.toFixed(1);
+
+  const all=copies(),page=layouts[$('layout').value],{jsPDF}=window.jspdf;
+  const layout=computeSheetLayout(page,cropMm,spacingMm);
+  const orientation=page.w>page.h?'landscape':'portrait';
+  const doc=new jsPDF({orientation,unit:'mm',format:[page.w,page.h],compress:true});
+  const pages=Math.ceil(all.length/layout.cap);
   const cache=new Map();
 
   for(let p=0;p<pages;p++){
-    if(p>0)doc.addPage([cfg.w,cfg.h],orientation);
-    const sx=(cfg.w-cfg.cols*cw)/2,sy=(cfg.h-cfg.rows*ch)/2;
-    const chunk=all.slice(p*cap,(p+1)*cap);
+    if(p>0)doc.addPage([page.w,page.h],orientation);
+    drawPageHeader(doc,page,p+1,pages,cropMm,spacingMm);
+    const chunk=all.slice(p*layout.cap,(p+1)*layout.cap);
     for(let i=0;i<chunk.length;i++){
-      const c=chunk[i],k=keyOf(c);
-      setProgress((p*cap+i)/all.length,`PDF · Karte ${p*cap+i+1}/${all.length}: ${c.de||c.en}`);
-      if(!cache.has(k))cache.set(k,await cardData(c));
-      const row=Math.floor(i/cfg.cols),col=i%cfg.cols;
-      doc.addImage(cache.get(k),'PNG',sx+col*cw,sy+row*ch,cw,ch,k,'FAST');
+      const c=chunk[i],k=keyOf(c),cacheKey=`${k}__crop_${cropMm.toFixed(1)}`;
+      setProgress((p*layout.cap+i)/all.length,`PDF · Karte ${p*layout.cap+i+1}/${all.length}: ${c.de||c.en}`);
+      if(!cache.has(cacheKey))cache.set(cacheKey,await cardData(c,cropMm));
+      const row=Math.floor(i/layout.cols),col=i%layout.cols;
+      const x=layout.sx+col*(layout.cardW+spacingMm);
+      const y=layout.sy+row*(layout.cardH+spacingMm);
+      doc.addImage(cache.get(cacheKey),'PNG',x,y,layout.cardW,layout.cardH,k,'FAST');
     }
-    drawMarks(doc,cfg,sx,sy,cw,ch);
+    drawMarks(doc,layout,spacingMm);
   }
+
   setProgress(.98,'PDF wird vorbereitet …');
-  const filename=`${currentDeck.id}_${$('layout').value}_450dpi.pdf`;
+  const filename=`${currentDeck.id}_${$('layout').value}_crop-${cropMm.toFixed(1)}mm_gap-${spacingMm.toFixed(1)}mm_450dpi.pdf`;
   const blob=doc.output('blob');
   if(pdfBlobUrl)URL.revokeObjectURL(pdfBlobUrl);
   pdfBlobUrl=URL.createObjectURL(blob);
@@ -514,8 +600,8 @@ async function makePdf(){
   link.download=filename;
   link.classList.add('show');
   link.textContent='PDF öffnen / herunterladen';
-  setProgress(1,'PDF fertig · unten auf „PDF öffnen / herunterladen“ tippen');
-  toast('PDF ist fertig. Über den neuen Button kannst du sie öffnen bzw. auf dem iPhone speichern.',6500);
+  setProgress(1,`PDF fertig · ${layout.cols}×${layout.rows} Karten pro Seite · unten auf „PDF öffnen / herunterladen“ tippen`);
+  toast(`PDF ist fertig. ${layout.cols}×${layout.rows} Karten pro Seite. Über den neuen Button kannst du sie öffnen bzw. auf dem iPhone speichern.`,6500);
 }
 
 async function checkServerHealth(){
@@ -559,9 +645,13 @@ async function init(){
   checkServerHealth();
   setInterval(checkServerHealth,60000);
 
-  $('layout').value=localStorage.getItem('ygo_layout')||'a3safe';
+  $('layout').value=localStorage.getItem('ygo_layout')||'a3';
   $('marks').value=localStorage.getItem('ygo_marks')||'1';
-  $('layout').onchange=()=>{savePrefs();$('pdfDownload').classList.remove('show')};$('marks').onchange=()=>{savePrefs();$('pdfDownload').classList.remove('show')};
+  $('cropMm').value=localStorage.getItem('ygo_cropMm')||'0.0';
+  $('spacingMm').value=localStorage.getItem('ygo_spacingMm')||'0.6';
+  const pdfInputs=['layout','marks','cropMm','spacingMm'];
+  pdfInputs.forEach(id=>$(id).onchange=()=>{savePrefs();$('pdfDownload').classList.remove('show')});
+  pdfInputs.forEach(id=>$(id).oninput=()=>{$('pdfDownload').classList.remove('show')});
   $('viewer').onclick=closeViewer;
   $('deckPicker').onclick=openPicker;$('sheetBg').onclick=closePicker;$('deckSearch').oninput=renderDeckItems;
   $('search').oninput=renderCardList;$('renderMissing').onclick=()=>startRender(false);$('rerenderDeck').onclick=()=>startRender(true);$('clearArchive').onclick=clearArchive;$('makePdf').onclick=makePdf;
